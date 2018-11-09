@@ -7,14 +7,16 @@
 
 namespace Cards {
 
-enum Color {Clubs, Spades, Hearts, Diamonds};
-static const Color AllColors[] = {Clubs, Spades, Hearts, Diamonds};
+enum Color {Diamonds, Hearts, Spades, Clubs};
+static const Color AllColors[] = {Diamonds, Hearts, Spades, Clubs};
 
-enum Rank {Jack, Ace, Ten, King, Queen, Nine, Eight, Seven};
-static const Rank AllRanks[] = {Jack, Ace, Ten, King, Queen, Nine, Eight, Seven};
+enum Rank {Seven, Eight, Nine, Queen, King, Ten, Ace, Jack};
+static const Rank AllRanks[] = {Seven, Eight, Nine, Queen, King, Ten, Ace, Jack};
 
-static const std::map<Rank, int> rank_values = {{Jack, 2}, {Ace, 11}, {Ten, 10}, 
+static const std::map<Rank, int> rank_points = {{Jack, 2}, {Ace, 11}, {Ten, 10}, 
     {King, 4}, {Queen, 3}, {Nine, 0}, {Eight, 0}, {Seven, 0}};
+
+static const std::map<Color, int> color_base_values = {{Clubs, 12}, {Spades, 11}, {Hearts, 10}, {Diamonds, 9}};
 
 static const std::map<Color, std::string> color_symbols = {{Clubs, u8"♣"}, {Spades, u8"♠"}, {Hearts, u8"♥"}, {Diamonds, u8"♦"}}; 
 static const std::map<Rank, std::string> rank_symbols = {{Jack, "J"}, {Ace, "A"}, {Ten, "T"}, {King, "K"}, 
@@ -33,5 +35,7 @@ std::ostream& operator<< (std::ostream& os, std::vector<Card> const& cards);
 
 std::vector<Card> get_full_shuffled_deck();
 int get_card_points(std::vector<Card> const& cards);
+int get_suit_base_value(Card const& card);
+int get_suit_base_value(Color const& color);
 
 } // namespace Cards
