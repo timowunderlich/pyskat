@@ -96,19 +96,24 @@ class Game {
             return false;
         }
 
-        int get_trick_winner() {
+        int get_trick_winner() { // FIXME 
             if (trick.size() != 3) {
                 throw std::runtime_error("Trick is not full yet");
+            }
+            if (trick.size() > 3) {
+                throw std::runtime_error("Trick is too full");
             }
             // First, update trick hierarchy
             for (auto& c: trick_hierarchy) {
                 if (c.rank != Cards::Rank::Jack) {
-                    c.color = trick[0].color;
+                    if (trump_in_trick()) {
+                        c.color = trump;
+                    }
+                    else {
+                        c.color = trick[0].color;
+                    }
                 }
-            }
-            // Find highest card in trick
-            
-            for (auto& c: trick_hierarchy) {
+                // Find highest card in trick
                 std::vector<Cards::Card>::iterator it;
                 it = std::find(trick.begin(), trick.end(), c);
                 if (it != trick.end()) {
@@ -118,6 +123,7 @@ class Game {
                     return winner;
                 }
             }
+
             throw std::runtime_error("Failed to find winning card");
         }
 
