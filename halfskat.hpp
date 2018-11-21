@@ -25,7 +25,13 @@ class Player {
     public:
         Player() = default; 
         virtual ~Player() = default;
-        virtual Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) = 0;
+        // Pure virtual member function that returns card to be played.
+        // Arguments:
+        // burned: previously used cards.
+        // trick: cards in current trick.
+        // played_by_declarer: indicates which cards were played by the declarer.
+        // is_declarer: indicates whether this player is the declarer.
+        virtual Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) = 0;
         int get_points() { return m_points; }
     protected:
         std::vector<Cards::Card> m_cards;
@@ -35,13 +41,13 @@ class Player {
 class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
-        Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) override;
+        Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
-        Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) override;
+        Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
 };
 
 
