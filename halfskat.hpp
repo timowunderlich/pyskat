@@ -19,7 +19,6 @@ static const int cards_per_player = 10;
 static const int cards_in_skat = 2;
 
 class Player {
-    template<class FirstPlayerT, class SecondPlayerT, class ThirdPlayerT>
     friend class Game;
     public:
         Player() = default; 
@@ -48,17 +47,13 @@ class HumanPlayer : public Player {
 };
 
 
-template<class FirstPlayerT, class SecondPlayerT, class ThirdPlayerT>
 class Game {
     public:
         Game(int const max_rounds = 1000) : max_rounds(max_rounds) {
-            BOOST_LOG_TRIVIAL(debug) << "Constructing new Game.";
-            static_assert(std::is_base_of<Player, FirstPlayerT>::value, "Players must derive from HalfSkat::Player.");
-            static_assert(std::is_base_of<Player, SecondPlayerT>::value, "Players must derive from HalfSkat::Player.");
-            static_assert(std::is_base_of<Player, ThirdPlayerT>::value, "Players must derive from HalfSkat::Player.");
-            players[0] = std::make_unique<FirstPlayerT>();
-            players[1] = std::make_unique<SecondPlayerT>();
-            players[2] = std::make_unique<ThirdPlayerT>();
+            BOOST_LOG_TRIVIAL(debug) << "Constructing new fully random Game.";
+            players[0] = std::make_unique<RandomPlayer>();
+            players[1] = std::make_unique<RandomPlayer>();
+            players[2] = std::make_unique<RandomPlayer>();
             reset_cards();
         }
 
@@ -345,11 +340,5 @@ class Game {
             }
         }
 };
-
-class RandomGame : public Game<RandomPlayer, RandomPlayer, RandomPlayer> {
-    public:
-        using Game<RandomPlayer, RandomPlayer, RandomPlayer>::Game;
-};
-
 
 } // namespace HalfSkat

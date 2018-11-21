@@ -58,7 +58,7 @@ TEST(CardsTest, RankRankingCorrect) {
 }
 
 TEST(HalfSkatTest, RandomGameLegalActions) {
-    RandomGame game;
+    Game game;
     std::vector<Card> cards = {{Clubs, Jack}, {Hearts, Ten}, {Diamonds, Nine}, {Clubs, Ten}, {Spades, King}};
     std::vector<Card> legals = game.get_legal_cards(cards);
     // All cards should be legal
@@ -95,7 +95,7 @@ TEST(HalfSkatTest, RandomGameLegalActions) {
 }
 
 TEST(HalfSkatTest, RandomGameTricksWork) {
-    RandomGame game;
+    Game game;
     int initial_round = game.round;
     game.step_by_trick();
     ASSERT_EQ(game.round, initial_round);
@@ -109,7 +109,7 @@ TEST(HalfSkatTest, RandomGameTricksWork) {
 }
 
 TEST(HalfSkatTest, RandomGameWholeGame) { 
-    RandomGame game;
+    Game game;
     int winner = game.run_whole_game();
     ASSERT_GE(winner, 0);
     ASSERT_EQ(game.round, game.get_max_rounds()+1);
@@ -122,7 +122,7 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     int const expected_var = std::round(n * (2/9.));
     int const expected_sigma = std::sqrt(expected_var);
     for (int i=0; i<n; i++) {
-        RandomGame game;
+        Game game;
         winner = game.run_whole_game();
         games_won[winner]++;
     }
