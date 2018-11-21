@@ -12,10 +12,9 @@
 
 #include "cards.hpp"
 
-static auto rng = std::default_random_engine {};
-
 namespace HalfSkat {
 
+static auto rng = std::default_random_engine {};
 static const int cards_per_player = 10;
 static const int cards_in_skat = 2;
 
