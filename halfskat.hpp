@@ -116,7 +116,7 @@ class Game {
                         c.color = trump;
                     }
                     else {
-                        c.color = trick[0].color;
+                        c.color = trick.front().color;
                     }
                 }
                 // Find highest card in trick
