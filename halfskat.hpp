@@ -5,7 +5,6 @@
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <algorithm>
-#include <memory>
 #include <random>
 #include <chrono>
 #include <stdexcept>
@@ -52,6 +51,13 @@ class Game {
         Game(int const max_rounds = 1000) : max_rounds(max_rounds) {
             BOOST_LOG_TRIVIAL(debug) << "Constructing new fully random Game.";
             players[0] = std::make_shared<RandomPlayer>();
+            players[1] = std::make_shared<RandomPlayer>();
+            players[2] = std::make_shared<RandomPlayer>();
+            reset_cards();
+        }
+        
+        Game(std::shared_ptr<Player> first_player, int const max_rounds = 1000) : max_rounds(max_rounds){
+            players[0] = std::move(first_player);
             players[1] = std::make_shared<RandomPlayer>();
             players[2] = std::make_shared<RandomPlayer>();
             reset_cards();
