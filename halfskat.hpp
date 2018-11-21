@@ -102,7 +102,7 @@ class Game {
             return false;
         }
 
-        int get_trick_winner() { // FIXME 
+        int get_trick_winner() {
             if (trick.size() != 3) {
                 throw std::runtime_error("Trick is not full yet");
             }
@@ -203,7 +203,6 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "Current dealer: " <<  std::to_string(dealer);
             BOOST_LOG_TRIVIAL(debug) << "Current declarer: " <<  std::to_string(declarer);
             BOOST_LOG_TRIVIAL(debug) << "Current player is declarer: " <<  current_player_is_declarer;
-            BOOST_LOG_TRIVIAL(debug) << "Cards played by friends: ";
             BOOST_LOG_TRIVIAL(debug) << "First player hand: " << players[0]->m_cards;
             BOOST_LOG_TRIVIAL(debug) << "Second player hand: " << players[1]->m_cards;
             BOOST_LOG_TRIVIAL(debug) << "Third player hand: " << players[2]->m_cards;
