@@ -38,5 +38,8 @@ PYBIND11_MODULE(pyskat, m) {
             ss << "<Card: "  << c << ">"; 
             return ss.str(); })
         .def_readwrite("rank", &Cards::Card::rank);
-    m.def("get_full_shuffled_deck", Cards::get_full_shuffled_deck);
+    m.def("get_full_shuffled_deck", &Cards::get_full_shuffled_deck);
+    m.def("get_card_points", &Cards::get_card_points);
+    m.def("get_suit_base_value", (int (*)(Cards::Card const&)) &Cards::get_suit_base_value);
+    m.def("get_suit_base_value", (int (*)(Cards::Color const&)) &Cards::get_suit_base_value);
 }
