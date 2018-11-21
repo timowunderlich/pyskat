@@ -51,9 +51,9 @@ class Game {
     public:
         Game(int const max_rounds = 1000) : max_rounds(max_rounds) {
             BOOST_LOG_TRIVIAL(debug) << "Constructing new fully random Game.";
-            players[0] = std::make_unique<RandomPlayer>();
-            players[1] = std::make_unique<RandomPlayer>();
-            players[2] = std::make_unique<RandomPlayer>();
+            players[0] = std::make_shared<RandomPlayer>();
+            players[1] = std::make_shared<RandomPlayer>();
+            players[2] = std::make_shared<RandomPlayer>();
             reset_cards();
         }
 
@@ -293,7 +293,7 @@ class Game {
         int declarer = 0;
         int current_player = 1;
     protected:
-        std::array<std::unique_ptr<Player>, 3> players;
+        std::array<std::shared_ptr<Player>, 3> players;
         std::array<std::vector<Cards::Card>, 3> won_cards;
         std::array<int, 3> points = {{0, 0, 0}};
         std::array<Cards::Card, 11> trick_hierarchy {{{Cards::Color::Clubs, Cards::Rank::Jack}, {Cards::Color::Spades, Cards::Rank::Jack},
