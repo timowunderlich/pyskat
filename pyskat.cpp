@@ -1,5 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
+#include <pybind11/stl.h>
+#include <pybind11/chrono.h>
 #include <Python.h>
 
 #include "halfskat.hpp"
@@ -31,5 +33,10 @@ PYBIND11_MODULE(pyskat, m) {
             std::stringstream ss;
             ss << c; 
             return ss.str(); })
+        .def("__repr__", [](Cards::Card const& c) { 
+            std::stringstream ss;
+            ss << "<Card: "  << c << ">"; 
+            return ss.str(); })
         .def_readwrite("rank", &Cards::Card::rank);
+    m.def("get_full_shuffled_deck", Cards::get_full_shuffled_deck);
 }
