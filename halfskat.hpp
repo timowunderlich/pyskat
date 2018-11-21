@@ -31,10 +31,8 @@ class Player {
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
         virtual Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) = 0;
-        int get_points() { return m_points; }
     protected:
         std::vector<Cards::Card> m_cards;
-        int m_points = 0;
 };
 
 class RandomPlayer : public Player {
