@@ -24,13 +24,13 @@ class Player {
     public:
         Player() = default; 
         virtual ~Player() = default;
-        // Pure virtual member function that returns card to be played.
+        // Pure virtual member function that takes public cards and returns card to be played.
         // Arguments:
-        // burned: previously used cards.
+        // won_cards: cards previously won by players.
         // trick: cards in current trick.
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
-        virtual Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) = 0;
+        virtual Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) = 0;
         int get_points() { return m_points; }
     protected:
         std::vector<Cards::Card> m_cards;
@@ -40,13 +40,13 @@ class Player {
 class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
-        Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
+        Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
-        Cards::Card get_action(std::vector<Cards::Card> const& burned, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
+        Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
 };
 
 
@@ -185,17 +185,12 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "Performing game step in round " << std::to_string(round);
             // First, determine input for player
             bool current_player_is_declarer;
-            std::vector<bool> played_by_friend = {false, false, false}; // Indicates which cards were played by friendly players 
-            played_by_friend.resize(trick.size());
             if (current_player == declarer) {
                 // No players are friendly
                 current_player_is_declarer = true;
             }
             else {
                 // Some players are friendly
-                for (int i=0; i<trick.size(); i++) {
-                    played_by_friend[i] = (trick_players[i] != declarer);
-                }
                 current_player_is_declarer = false;
             }
             BOOST_LOG_TRIVIAL(debug) << "Current round: " <<  round;
@@ -215,15 +210,15 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "First player won: " << won_cards[0];
             BOOST_LOG_TRIVIAL(debug) << "Second player won: " << won_cards[1];
             BOOST_LOG_TRIVIAL(debug) << "Third player won: " << won_cards[2];
-            for (auto p : played_by_friend) {
+            /*for (auto p : played_by_friend) {
                 BOOST_LOG_TRIVIAL(debug) << p;
-            }
+            }*/
             // Get card player wants to play
             Cards::Card played_card;
             std::vector<Cards::Card> legal_cards;
             bool in_legals = false;
             while (in_legals == false) {
-                played_card = players[current_player]->get_action(trick, played_by_friend, current_player_is_declarer);
+                played_card = players[current_player]->get_action(won_cards, trick, played_by_declarer, current_player_is_declarer);
                 BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
                 // Check if legal move
                 legal_cards = get_legal_cards(players[current_player]->m_cards);
@@ -234,12 +229,14 @@ class Game {
             remove_card_from_current_player(played_card);
             trick_players.push_back(current_player);
             trick.push_back(played_card);
+            played_by_declarer.push_back(current_player_is_declarer);
             if (trick.size() == 3) { // End of trick reached
                 BOOST_LOG_TRIVIAL(debug) << "End of trick reached: " << trick;
                 int winner = get_trick_winner();
                 won_cards[winner].insert(won_cards[winner].end(), trick.begin(), trick.end());
                 trick.clear();
                 trick_players.clear();
+                played_by_declarer.clear();
                 tricks_played++;
                 current_player = winner;
             } 
@@ -316,6 +313,7 @@ class Game {
             {Cards::Color::Spades, Cards::Rank::Nine}, {Cards::Color::Spades, Cards::Rank::Eight}, {Cards::Color::Spades, Cards::Rank::Seven}}};
         std::vector<Cards::Card> skat;
         std::vector<Cards::Card> trick;
+        std::vector<bool> played_by_declarer; // Indicates which trick cards were played by declarer
         std::vector<int> trick_players;
         int max_rounds;
         std::uniform_int_distribution<> rand_distr{0, 2};
