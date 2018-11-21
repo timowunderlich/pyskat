@@ -23,7 +23,7 @@ class Player {
     template<class FirstPlayerT, class SecondPlayerT, class ThirdPlayerT>
     friend class Game;
     public:
-        Player() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); }
+        Player() = default; 
         virtual ~Player() = default;
         virtual Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) = 0;
         int get_points() { return m_points; }
@@ -34,7 +34,7 @@ class Player {
 
 class RandomPlayer : public Player {
     public:
-        using Player::Player;
+        RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
         Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) override;
 };
 
