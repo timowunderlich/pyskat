@@ -210,9 +210,6 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "First player won: " << won_cards[0];
             BOOST_LOG_TRIVIAL(debug) << "Second player won: " << won_cards[1];
             BOOST_LOG_TRIVIAL(debug) << "Third player won: " << won_cards[2];
-            /*for (auto p : played_by_friend) {
-                BOOST_LOG_TRIVIAL(debug) << p;
-            }*/
             // Get card player wants to play
             Cards::Card played_card;
             std::vector<Cards::Card> legal_cards;
