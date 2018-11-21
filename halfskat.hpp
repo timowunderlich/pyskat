@@ -24,6 +24,7 @@ class Player {
     friend class Game;
     public:
         Player() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); }
+        virtual ~Player() = default;
         virtual Cards::Card get_action(std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_friend, bool is_declarer) = 0;
         int get_points() { return m_points; }
     protected:
