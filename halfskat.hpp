@@ -28,7 +28,7 @@ class Player {
         // trick: cards in current trick.
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
-        virtual Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) = 0;
+        virtual Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
 };
