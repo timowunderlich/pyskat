@@ -96,15 +96,15 @@ TEST(HalfSkatTest, RandomGameLegalActions) {
 
 TEST(HalfSkatTest, RandomGameTricksWork) {
     Game game;
-    int initial_round = game.round;
+    int initial_round = game.get_round();
     game.step_by_trick();
-    ASSERT_EQ(game.round, initial_round);
+    ASSERT_EQ(game.get_round(), initial_round);
     ASSERT_EQ(game.get_trick().size(), 1);
     game.step_by_trick();
-    ASSERT_EQ(game.round, initial_round);
+    ASSERT_EQ(game.get_round(), initial_round);
     ASSERT_EQ(game.get_trick().size(), 2);
     game.step_by_trick(); // Should be final step
-    ASSERT_EQ(game.round, initial_round);
+    ASSERT_EQ(game.get_round(), initial_round);
     ASSERT_EQ(game.get_trick().size(), 0);
 }
 
@@ -112,7 +112,7 @@ TEST(HalfSkatTest, RandomGameWholeGame) {
     Game game;
     int winner = game.run_whole_game();
     ASSERT_GE(winner, 0);
-    ASSERT_EQ(game.round, game.get_max_rounds()+1);
+    ASSERT_EQ(game.get_round(), game.get_max_rounds()+1);
 }
 
 TEST(HalfSkatTest, RandomNoPlayerBias) {

@@ -290,15 +290,16 @@ class Game {
 
         std::vector<Cards::Card> get_trick() const { return trick; }
         std::array<int, 3> get_points() const { return points; }
+        int get_round() const { return round; }
         int get_max_rounds() const { return max_rounds; }
         Cards::Color const trump = Cards::Color::Clubs;
+    protected:
         int tricks_played = 0;
         int game_winner = -1;
         int round = 0;
         int dealer = 0;
         int declarer = 0;
         int current_player = 1;
-    protected:
         std::array<std::shared_ptr<Player>, 3> players;
         std::array<std::vector<Cards::Card>, 3> won_cards;
         std::array<int, 3> points = {{0, 0, 0}};
