@@ -38,6 +38,7 @@ class Player {
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
         virtual Cards::Card get_action(ObservableState const& state, int player_id) { throw std::runtime_error("Not implemented."); }
+        virtual void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
 };
@@ -46,12 +47,14 @@ class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
         Cards::Card get_action(ObservableState const& state, int player_id) override;
+        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { return; }
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
         Cards::Card get_action(ObservableState const& state, int player_id) override;
+        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { return; }
 };
 
 class Game {
