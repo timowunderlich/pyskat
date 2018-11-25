@@ -48,14 +48,14 @@ class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
         Cards::Card get_action(ObservableState const& state, int player_id) override;
-        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { return; }
+        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) override { return; }
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
         Cards::Card get_action(ObservableState const& state, int player_id) override;
-        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { return; }
+        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) override { return; }
 };
 
 class Game {
