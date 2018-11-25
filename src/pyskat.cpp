@@ -55,7 +55,7 @@ PYBIND11_MODULE(pyskat, m) {
         .def(py::init<>())
         .def("get_action", &HalfSkat::Player::get_action);
     py::class_<HalfSkat::Game>(m, "Game")
-        .def(py::init<int const>(), py::arg("max_rounds") = 1000)
+        .def(py::init<int const, bool const>(), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
         .def(py::init<std::shared_ptr<HalfSkat::Player>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
         .def(py::init<std::shared_ptr<HalfSkat::RandomPlayer>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
         .def(py::init<std::shared_ptr<HalfSkat::HumanPlayer>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)

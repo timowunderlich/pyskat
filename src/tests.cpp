@@ -95,7 +95,7 @@ TEST(HalfSkatTest, RandomGameLegalActions) {
 }
 
 TEST(HalfSkatTest, RandomGameTricksWork) {
-    Game game;
+    Game game(1000, true);
     int initial_round = game.get_round();
     game.step_by_trick();
     ASSERT_EQ(game.get_round(), initial_round);
@@ -109,10 +109,12 @@ TEST(HalfSkatTest, RandomGameTricksWork) {
 }
 
 TEST(HalfSkatTest, RandomGameWholeGame) { 
-    Game game;
+    Game game(1000, true);
     game.run_whole_game();
     int winner = game.get_game_winner();
+    GameState state = game.get_state();
     ASSERT_GE(winner, 0);
+    ASSERT_EQ(state, finished);
     ASSERT_EQ(game.get_round(), game.get_max_rounds()+1);
 }
 
@@ -123,7 +125,7 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     int const expected_var = std::round(n * (2/9.));
     int const expected_sigma = std::sqrt(expected_var);
     for (int i=0; i<n; i++) {
-        Game game;
+        Game game(1000, true);
         game.run_whole_game();
         winner = game.get_game_winner();
         games_won[winner]++;

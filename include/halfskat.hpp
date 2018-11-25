@@ -16,6 +16,7 @@ namespace HalfSkat {
 static auto rng = std::default_random_engine {};
 static const int cards_per_player = 10;
 static const int cards_in_skat = 2;
+enum GameState { ongoing = -1, early_abort = -2, finished = 0 };
 
 struct ObservableState {
     std::array<std::vector<Cards::Card>, 3> won_cards; // Cards won previously by players
@@ -59,7 +60,7 @@ class HumanPlayer : public Player {
 
 class Game {
     public:
-        Game(int const max_rounds = 1000) : max_rounds(max_rounds) {
+        Game(int const max_rounds = 1000, bool const retry_on_illegal_action = false) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
             BOOST_LOG_TRIVIAL(debug) << "Constructing new fully random Game.";
             players[0] = std::make_shared<RandomPlayer>();
             players[1] = std::make_shared<RandomPlayer>();
@@ -67,7 +68,7 @@ class Game {
             reset_cards();
         }
         
-        Game(std::shared_ptr<Player> first_player, int const max_rounds = 1000) : max_rounds(max_rounds){
+        Game(std::shared_ptr<Player> first_player, int const max_rounds = 1000, bool retry_on_illegal_action = false) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
             players[0] = std::move(first_player);
             players[1] = std::make_shared<RandomPlayer>();
             players[2] = std::make_shared<RandomPlayer>();
@@ -227,19 +228,27 @@ class Game {
             Cards::Card played_card;
             std::vector<Cards::Card> legal_cards;
             bool in_legals = false;
-            while (in_legals == false) {
-                played_card = players[current_player]->get_action(get_observable_state(), current_player);
+            int reward = 0; // If no win and no illegal action, reward is zero
+            ObservableState state_before = get_observable_state();
+            while ((not in_legals) and retry_on_illegal) {
+                state_before = get_observable_state();
+                played_card = players[current_player]->get_action(state_before, current_player);
                 BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
                 // Check if legal move
                 legal_cards = get_legal_cards(players[current_player]->m_cards);
                 in_legals = (std::find(legal_cards.begin(), legal_cards.end(), played_card) != legal_cards.end());
                 BOOST_LOG_TRIVIAL(debug) << "This move is legal: " << in_legals;
-                // FIXME: Add feedback to player when move is illegal
             }
             remove_card_from_current_player(played_card);
             trick_players.push_back(current_player);
             trick.push_back(played_card);
             played_by_declarer.push_back(current_player_is_declarer);
+            ObservableState state_after = get_observable_state();
+            if (not in_legals) { // Abort game, illegal move
+                state = early_abort;
+                // FIXME: add negative feedback
+                return;
+            }
             if (trick.size() == 3) { // End of trick reached
                 BOOST_LOG_TRIVIAL(debug) << "End of trick reached: " << trick;
                 int winner = get_trick_winner();
@@ -280,8 +289,10 @@ class Game {
             }
             if (round > max_rounds) {
                 game_winner = get_game_winner();
+                state = finished;
                 BOOST_LOG_TRIVIAL(debug) << "Game finished -- winner: " << std::to_string(game_winner);
             }
+            players[current_player]->put_transition(state_before, played_card, 0, state_after);
             BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
             return;
         }
@@ -295,7 +306,7 @@ class Game {
         }
 
         void run_whole_game() { 
-            while (game_winner == -1) {
+            while (state == ongoing) {
                 step_by_round();
             }
             return;
@@ -305,8 +316,12 @@ class Game {
         std::array<int, 3> get_points() const { return points; }
         int get_round() const { return round; }
         int get_max_rounds() const { return max_rounds; }
+        GameState get_state() const { return state; }
         Cards::Color const trump = Cards::Color::Clubs;
     protected:
+        GameState state = ongoing;
+        int max_rounds;
+        bool retry_on_illegal;
         int tricks_played = 0;
         int game_winner = -1;
         int round = 0;
@@ -324,7 +339,6 @@ class Game {
         std::vector<Cards::Card> trick;
         std::vector<bool> played_by_declarer; // Indicates which trick cards were played by declarer
         std::vector<int> trick_players;
-        int max_rounds;
         std::uniform_int_distribution<> rand_distr{0, 2};
         void reset_cards() {
             trick.clear();
