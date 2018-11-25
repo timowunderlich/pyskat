@@ -9,7 +9,7 @@ FLAGS = -O3 -g -c -Wall -std=c++14 -stdlib=libc++ -Iinclude/
 SOFLAGS = -shared -O3 -undefined dynamic_lookup -Wall -std=c++14 `python3-config --include`  -fPIC  -Iinclude/
 LFLAGS	 = -lgtest -lboost_thread -lboost_log -lboost_system
 
-all: $(OBJS)
+all: $(OBJS) $(PYOUT)
 	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)
 
 tests.o: $(SOURCEDIR)tests.cpp
