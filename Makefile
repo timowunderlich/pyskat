@@ -1,4 +1,4 @@
-OBJS	= tests.o cards.o halfskat.o pyskat.so
+OBJS	= tests.o cards.o halfskat.o
 SOURCE	= tests.cpp cards.cpp halfskat.cpp  pyskat.cpp
 SOURCEDIR = src/
 HEADER	= cards.hpp halfskat.hpp
@@ -25,4 +25,4 @@ pyskat.so: $(SOURCEDIR)pyskat.cpp
 	$(CC) $(SOFLAGS) $(LFLAGS) $(SOURCEDIR)pyskat.cpp $(SOURCEDIR)cards.cpp $(SOURCEDIR)halfskat.cpp -o $(PYOUT)
 
 clean:
-	rm -f $(OBJS) $(OUT)
+	rm -f $(OBJS) $(OUT) $(PYOUT)
