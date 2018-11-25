@@ -194,7 +194,7 @@ class Game {
             return game_level;
         }
 
-        int step_by_trick() {
+        void step_by_trick() {
             BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
             BOOST_LOG_TRIVIAL(debug) << "Performing game step in round " << std::to_string(round);
             // First, determine input for player
@@ -283,24 +283,22 @@ class Game {
                 BOOST_LOG_TRIVIAL(debug) << "Game finished -- winner: " << std::to_string(game_winner);
             }
             BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
-            return game_winner;
+            return;
         }
 
-        int step_by_round() {
+        void step_by_round() {
             int starting_round = round;
-            int game_winner;
             while (round == starting_round) {
-                game_winner = step_by_trick();
+                step_by_trick();
             }
-            return game_winner;
+            return;
         }
 
-        int run_whole_game() { 
-            int game_winner = -1;
+        void run_whole_game() { 
             while (game_winner == -1) {
-                game_winner = step_by_round();
+                step_by_round();
             }
-            return game_winner;
+            return;
         }
 
         std::vector<Cards::Card> get_trick() const { return trick; }

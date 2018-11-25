@@ -110,7 +110,8 @@ TEST(HalfSkatTest, RandomGameTricksWork) {
 
 TEST(HalfSkatTest, RandomGameWholeGame) { 
     Game game;
-    int winner = game.run_whole_game();
+    game.run_whole_game();
+    int winner = game.get_game_winner();
     ASSERT_GE(winner, 0);
     ASSERT_EQ(game.get_round(), game.get_max_rounds()+1);
 }
@@ -123,7 +124,8 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     int const expected_sigma = std::sqrt(expected_var);
     for (int i=0; i<n; i++) {
         Game game;
-        winner = game.run_whole_game();
+        game.run_whole_game();
+        winner = game.get_game_winner();
         games_won[winner]++;
     }
     EXPECT_LE(games_won[0], 2*expected_sigma);
