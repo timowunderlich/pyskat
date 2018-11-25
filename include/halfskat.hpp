@@ -17,6 +17,15 @@ static auto rng = std::default_random_engine {};
 static const int cards_per_player = 10;
 static const int cards_in_skat = 2;
 
+struct ObservableState {
+    std::array<std::vector<Cards::Card>, 3> won_cards; // Cards won previously by players
+    std::vector<Cards::Card> trick; // Current trick
+    std::vector<int> trick_players; // Identifies who played cards in the trick
+    int dealer; // Identifies current dealer
+    int declarer; // Identifies current declarer
+    ObservableState(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<int> const& trick_players, int const dealer, int const declarer) : won_cards(won_cards), trick(trick), trick_players(trick_players), dealer(dealer), declarer(declarer) {};
+};
+
 class Player {
     friend class Game;
     public:
@@ -28,7 +37,7 @@ class Player {
         // trick: cards in current trick.
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
-        virtual Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) { throw std::runtime_error("Not implemented."); }
+        virtual Cards::Card get_action(ObservableState const& state, int player_id) { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
 };
@@ -36,15 +45,14 @@ class Player {
 class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
-        Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
+        Cards::Card get_action(ObservableState const& state, int player_id) override;
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
-        Cards::Card get_action(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<bool> const& played_by_declarer, bool is_declarer) override;
+        Cards::Card get_action(ObservableState const& state, int player_id) override;
 };
-
 
 class Game {
     public:
@@ -61,6 +69,10 @@ class Game {
             players[1] = std::make_shared<RandomPlayer>();
             players[2] = std::make_shared<RandomPlayer>();
             reset_cards();
+        }
+
+        ObservableState get_observable_state() const {
+            return ObservableState(won_cards, trick, trick_players, dealer, declarer);
         }
 
         std::vector<Cards::Card> get_legal_cards(std::vector<Cards::Card> const& players_cards) const {
@@ -213,7 +225,7 @@ class Game {
             std::vector<Cards::Card> legal_cards;
             bool in_legals = false;
             while (in_legals == false) {
-                played_card = players[current_player]->get_action(won_cards, trick, played_by_declarer, current_player_is_declarer);
+                played_card = players[current_player]->get_action(get_observable_state(), current_player);
                 BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
                 // Check if legal move
                 legal_cards = get_legal_cards(players[current_player]->m_cards);
