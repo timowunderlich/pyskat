@@ -7,29 +7,32 @@
 
 using namespace HalfSkat;
 
-Cards::Card RandomPlayer::get_action(ObservableState const& state, int player_id) {
+Cards::Card Player::get_action(ObservableState const& state, int player_id) {
+    m_last_state = PlayerState(state, m_cards, player_id);
+    Cards::Card action = query_policy();
+    m_last_action = action;
+    return action;
+}
+
+void Player::put_transition(int const reward, ObservableState const& new_state, int player_id) {
+    BOOST_LOG_TRIVIAL(debug) << "Putting new transition for player " << std::to_string(player_id) << ", reward: " << std::to_string(reward) << ", action: " << m_last_action;
+    m_transitions.push_back(Transition(m_last_state, PlayerState(new_state, m_cards, player_id), reward, m_last_action));
+}
+
+Cards::Card RandomPlayer::query_policy() {
     assert(m_cards.empty() == false);
     std::uniform_int_distribution<> distr(0, m_cards.size()-1);
     int card = distr(rng);
     return m_cards[card];
 }
 
-static std::ostream& operator<<(std::ostream& os, std::vector<int> const& vec) {
-    int i = 0;
-    for (auto e : vec) {
-        os << std::to_string(i+1) << ". " << e;
-        if (i++ < vec.size()-1) {
-            os << ", ";
-        }
+Cards::Card HumanPlayer::query_policy() {
+    std::cout << "\nCurrent trick: " << m_last_state.trick;
+    std::cout << "\nPlayed by: ";
+    for (auto c : m_last_state.trick) {
+        BOOST_LOG_TRIVIAL(debug) << std::to_string(c.played_by) << " ";
     }
-    return os;
-}
-
-Cards::Card HumanPlayer::get_action(ObservableState const& state, int player_id) {
-    std::cout << "\nCurrent trick: " << state.trick;
-    std::cout << "\nPlayed by: " << state.trick_players;
-    std::cout << "\nDeclarer: " << state.declarer;
-    std::cout << "\nYou are: " << player_id;
+    std::cout << "\nYou are declarer: " << m_last_state.is_declarer;
     std::cout << "\nYour current cards: " << m_cards;
     std::cout << "\nEnter card to play: ";
     std::string input;

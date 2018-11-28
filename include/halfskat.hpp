@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <boost/log/trivial.hpp>
+#include <boost/circular_buffer.hpp>
 #include <cassert>
 #include <algorithm>
 #include <random>
@@ -16,21 +17,80 @@ namespace HalfSkat {
 static auto rng = std::default_random_engine {};
 static const int cards_per_player = 10;
 static const int cards_in_skat = 2;
-enum GameState { ongoing = -1, early_abort = -2, finished = 0 };
+enum GameState { ongoing = 0, early_abort = -1, finished = 1 };
 
-struct ObservableState {
+// Player independent state of game which everyone can observe
+struct ObservableState { 
     std::array<std::vector<Cards::Card>, 3> won_cards; // Cards won previously by players
     std::vector<Cards::Card> trick; // Current trick
-    std::vector<int> trick_players; // Identifies who played cards in the trick
     int dealer; // Identifies current dealer
     int declarer; // Identifies current declarer
-    ObservableState(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, std::vector<int> const& trick_players, int const dealer, int const declarer) : won_cards(won_cards), trick(trick), trick_players(trick_players), dealer(dealer), declarer(declarer) {};
+    ObservableState(std::array<std::vector<Cards::Card>, 3> const& won_cards, std::vector<Cards::Card> const& trick, int const dealer, int const declarer) : won_cards(won_cards), trick(trick), dealer(dealer), declarer(declarer) { }
+    ObservableState() {}
+};
+
+// State of game from the perspective of a player
+struct PlayerState {
+    std::vector<Cards::Card> hole_cards;
+    std::vector<Cards::Card> trick;
+    std::vector<Cards::Card> trick_friendly; // Part of trick that was played by me or friendly player
+    std::vector<Cards::Card> trick_hostile; // Part of trick that was played by hostile players
+    std::vector<Cards::Card> won_friendly; // Cards won by me or the friendly party
+    std::vector<Cards::Card> won_hostile; // Cards won by hostile players
+    bool is_declarer; // Indicates whether player is the declarer
+    PlayerState() = default;
+    // Construct PlayerState from ObservableState, hole cards and player identifier
+    PlayerState(ObservableState const& public_state, std::vector<Cards::Card> const& hole_cards, int player_id) : hole_cards(hole_cards) {
+        is_declarer = (public_state.declarer == player_id);
+        trick = public_state.trick;
+        if (is_declarer) {
+            int other_id = (player_id+1)%3;
+            int also_other_id = (player_id+2)%3;
+            won_hostile.insert(won_hostile.end(), public_state.won_cards[other_id].begin(), public_state.won_cards[other_id].end());
+            won_hostile.insert(won_hostile.end(), public_state.won_cards[also_other_id].begin(), public_state.won_cards[also_other_id].end());
+            won_friendly.insert(won_friendly.end(), public_state.won_cards[player_id].begin(), public_state.won_cards[player_id].end());
+        }
+        else {
+            int other_id = (public_state.declarer+1)%3;
+            int also_other_id = (public_state.declarer+2)%3;
+            won_hostile.insert(won_hostile.end(), public_state.won_cards[public_state.declarer].begin(), public_state.won_cards[public_state.declarer].end());
+            won_friendly.insert(won_friendly.end(), public_state.won_cards[other_id].begin(), public_state.won_cards[other_id].end());
+            won_friendly.insert(won_friendly.end(), public_state.won_cards[also_other_id].begin(), public_state.won_cards[also_other_id].end());
+        }
+        // Find player cards in trick
+        for (auto c : public_state.trick) {
+            if (is_declarer) {
+                if (c.played_by == player_id) {
+                    trick_friendly.push_back(c);
+                }
+                else {
+                    trick_hostile.push_back(c);
+                }
+            }
+            else {
+                if (c.played_by == public_state.declarer) {
+                    trick_hostile.push_back(c);
+                }
+                else {
+                    trick_friendly.push_back(c);
+                }
+            }
+        }
+    }
+};
+
+struct Transition {
+    PlayerState before;
+    PlayerState after;
+    int reward;
+    Cards::Card action;
+    Transition(PlayerState const& before, PlayerState const& after, int reward, Cards::Card const& action) : before(before), after(after), reward(reward), action(action) {}
 };
 
 class Player {
     friend class Game;
     public:
-        Player() = default; 
+        Player(int num_transitions = 1000) : m_transitions(boost::circular_buffer<Transition>(num_transitions)) {}
         virtual ~Player() = default;
         // Pure virtual member function that takes public cards and returns card to be played.
         // Arguments:
@@ -38,24 +98,26 @@ class Player {
         // trick: cards in current trick.
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
-        virtual Cards::Card get_action(ObservableState const& state, int player_id) { throw std::runtime_error("Not implemented."); }
-        virtual void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) { throw std::runtime_error("Not implemented."); }
+        virtual Cards::Card get_action(ObservableState const& state, int player_id);
+        virtual void put_transition(int const reward, ObservableState const& new_state, int player_id);
+        virtual Cards::Card query_policy() { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
+        PlayerState m_last_state;
+        Cards::Card m_last_action;
+        boost::circular_buffer<Transition> m_transitions;
 };
 
 class RandomPlayer : public Player {
     public:
         RandomPlayer() { rng.seed(std::chrono::system_clock::now().time_since_epoch().count()); } // Seed with current time
-        Cards::Card get_action(ObservableState const& state, int player_id) override;
-        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) override { return; }
+        Cards::Card query_policy() override;
 };
 
 class HumanPlayer : public Player {
     public:
         using Player::Player;
-        Cards::Card get_action(ObservableState const& state, int player_id) override;
-        void put_transition(ObservableState const& before, Cards::Card const played_card, int const reward, ObservableState const& after) override { return; }
+        Cards::Card query_policy() override;
 };
 
 class Game {
@@ -76,7 +138,7 @@ class Game {
         }
 
         ObservableState get_observable_state() const {
-            return ObservableState(won_cards, trick, trick_players, dealer, declarer);
+            return ObservableState(won_cards, trick, dealer, declarer);
         }
 
         std::vector<Cards::Card> get_legal_cards(std::vector<Cards::Card> const& players_cards) const {
@@ -138,7 +200,7 @@ class Game {
                 std::vector<Cards::Card>::iterator it;
                 it = std::find(trick.begin(), trick.end(), c);
                 if (it != trick.end()) {
-                    int winner = trick_players[std::distance(trick.begin(), it)];
+                    int winner = it->played_by;
                     BOOST_LOG_TRIVIAL(debug) << "Determined winning card to be: " << c;
                     BOOST_LOG_TRIVIAL(debug) << "Determined winning player to be: " << std::to_string(winner);
                     return winner;
@@ -211,8 +273,8 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "Current round: " <<  round;
             BOOST_LOG_TRIVIAL(debug) << "Current trick: " <<  trick;
             BOOST_LOG_TRIVIAL(debug) << "Trick played by: ";
-            for (auto p: trick_players) {
-                BOOST_LOG_TRIVIAL(debug) << p;
+            for (auto c : trick) {
+                BOOST_LOG_TRIVIAL(debug) << std::to_string(c.played_by) << " ";
             }
             BOOST_LOG_TRIVIAL(debug) << "Current player: " <<  std::to_string(current_player);
             BOOST_LOG_TRIVIAL(debug) << "Current dealer: " <<  std::to_string(dealer);
@@ -228,10 +290,8 @@ class Game {
             Cards::Card played_card;
             std::vector<Cards::Card> legal_cards;
             bool in_legals = false;
-            int reward = 0; // If no win and no illegal action, reward is zero
-            ObservableState state_before = get_observable_state();
+            state_before = get_observable_state();
             while ((not in_legals) and retry_on_illegal) {
-                state_before = get_observable_state();
                 played_card = players[current_player]->get_action(state_before, current_player);
                 BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
                 // Check if legal move
@@ -240,59 +300,35 @@ class Game {
                 BOOST_LOG_TRIVIAL(debug) << "This move is legal: " << in_legals;
             }
             remove_card_from_current_player(played_card);
-            trick_players.push_back(current_player);
+            played_card.played_by = current_player;
             trick.push_back(played_card);
             played_by_declarer.push_back(current_player_is_declarer);
-            ObservableState state_after = get_observable_state();
             if (not in_legals) { // Abort game, illegal move
                 state = early_abort;
-                // FIXME: add negative feedback
+                players[current_player]->put_transition(-1, get_observable_state(), current_player);
                 return;
             }
             if (trick.size() == 3) { // End of trick reached
                 BOOST_LOG_TRIVIAL(debug) << "End of trick reached: " << trick;
+                // Determine winner and manage cards
                 int winner = get_trick_winner();
                 won_cards[winner].insert(won_cards[winner].end(), trick.begin(), trick.end());
                 trick.clear();
-                trick_players.clear();
                 played_by_declarer.clear();
                 tricks_played++;
                 current_player = winner;
+                state_after = get_observable_state();
+                // Provide state transitions to players 
+                if ((round != max_rounds) and (tricks_played != cards_per_player)) { // Only if game isn't over
+                    for (int i=0; i<players.size(); i++) {
+                        players[i]->put_transition(0, state_after, i);
+                    }
+                }
             } 
             else { // Trick moves on 
                 BOOST_LOG_TRIVIAL(debug) << "It is the next player's turn";
                 current_player = (current_player + 1) % 3;
             }
-            if (tricks_played == cards_per_player) { // Round finished
-                BOOST_LOG_TRIVIAL(debug) << "End of round reached";
-                // Declarer receives the Skat
-                won_cards[declarer].insert(won_cards[declarer].end(), skat.begin(), skat.end());
-                bool declarer_win = declarer_has_won_round();
-                BOOST_LOG_TRIVIAL(debug) << "Declarer has won: " << declarer_win;
-                int game_value = get_game_value(won_cards[declarer]);
-                BOOST_LOG_TRIVIAL(debug) << "Calculated game value: " << std::to_string(game_value);
-                if (declarer_win) {
-                    points[declarer] += game_value;
-                }
-                else {
-                    points[declarer] -= 2*game_value;
-                }
-                BOOST_LOG_TRIVIAL(debug) << "New game points: " << std::to_string(points[0]) << ", " << std::to_string(points[1]) << ", " << std::to_string(points[2]);
-                round++;
-                reset_cards();
-                reset_won_cards();
-                // Set declarer, dealer to next player
-                declarer = (declarer + 1) % 3;
-                dealer = (dealer + 1) % 3;
-                current_player = (dealer + 1) % 3;
-                tricks_played = 0;
-            }
-            if (round > max_rounds) {
-                game_winner = get_game_winner();
-                state = finished;
-                BOOST_LOG_TRIVIAL(debug) << "Game finished -- winner: " << std::to_string(game_winner);
-            }
-            players[current_player]->put_transition(state_before, played_card, 0, state_after);
             BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
             return;
         }
@@ -301,6 +337,33 @@ class Game {
             int starting_round = round;
             while (round == starting_round) {
                 step_by_trick();
+                if (tricks_played == cards_per_player) { // Round finished
+                    BOOST_LOG_TRIVIAL(debug) << "End of round reached";
+                    // Declarer receives the Skat
+                    won_cards[declarer].insert(won_cards[declarer].end(), skat.begin(), skat.end());
+                    bool declarer_win = declarer_has_won_round();
+                    BOOST_LOG_TRIVIAL(debug) << "Declarer has won: " << declarer_win;
+                    int game_value = get_game_value(won_cards[declarer]);
+                    BOOST_LOG_TRIVIAL(debug) << "Calculated game value: " << std::to_string(game_value);
+                    if (declarer_win) {
+                        points[declarer] += game_value;
+                    }
+                    else {
+                        points[declarer] -= 2*game_value;
+                    }
+                    BOOST_LOG_TRIVIAL(debug) << "New game points: " << std::to_string(points[0]) << ", " << std::to_string(points[1]) << ", " << std::to_string(points[2]);
+                    round++;
+                    // Reset cards and move player designations if game isn't finished 
+                    if (round <= max_rounds) {
+                        reset_cards();
+                        reset_won_cards();
+                        // Set declarer, dealer to next player
+                        declarer = (declarer + 1) % 3;
+                        dealer = (dealer + 1) % 3;
+                        current_player = (dealer + 1) % 3;
+                        tricks_played = 0;
+                    }
+                }
             }
             return;
         }
@@ -308,6 +371,16 @@ class Game {
         void run_whole_game() { 
             while (state == ongoing) {
                 step_by_round();
+                if (round > max_rounds) {
+                    game_winner = get_game_winner();
+                    int not_winner = (game_winner + 1) % 3;
+                    int also_not_winner = (game_winner + 2) % 3;
+                    players[game_winner]->put_transition(+1, state_after, game_winner);
+                    players[not_winner]->put_transition(-1, state_after, not_winner);
+                    players[also_not_winner]->put_transition(-1, state_after, also_not_winner);
+                    state = finished;
+                    BOOST_LOG_TRIVIAL(debug) << "Game finished -- winner: " << std::to_string(game_winner);
+                }
             }
             return;
         }
@@ -328,6 +401,8 @@ class Game {
         int dealer = 0;
         int declarer = 0;
         int current_player = 1;
+        ObservableState state_before;
+        ObservableState state_after;
         std::array<std::shared_ptr<Player>, 3> players;
         std::array<std::vector<Cards::Card>, 3> won_cards;
         std::array<int, 3> points = {{0, 0, 0}};
@@ -338,7 +413,6 @@ class Game {
         std::vector<Cards::Card> skat;
         std::vector<Cards::Card> trick;
         std::vector<bool> played_by_declarer; // Indicates which trick cards were played by declarer
-        std::vector<int> trick_players;
         std::uniform_int_distribution<> rand_distr{0, 2};
         void reset_cards() {
             trick.clear();
