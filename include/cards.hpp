@@ -25,6 +25,7 @@ static const std::map<Rank, std::string> rank_symbols = {{Jack, "J"}, {Ace, "A"}
 struct Card {
     Color color = Diamonds;
     Rank rank = Seven; 
+    int played_by = -1;
     Card(Color const c, Rank const r) : color(c), rank(r) {};
     Card() {};
     bool operator==(Card const& card) const { return ((color == card.color) && (rank == card.rank)); }
