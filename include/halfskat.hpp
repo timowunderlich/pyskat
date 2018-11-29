@@ -98,8 +98,8 @@ class Player {
         // trick: cards in current trick.
         // played_by_declarer: indicates which cards were played by the declarer.
         // is_declarer: indicates whether this player is the declarer.
-        virtual Cards::Card get_action(ObservableState const& state, int player_id);
-        virtual void put_transition(int const reward, ObservableState const& new_state, int player_id);
+        Cards::Card get_action(ObservableState const& state, int player_id);
+        void put_transition(int const reward, ObservableState const& new_state, int player_id);
         virtual Cards::Card query_policy() { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
