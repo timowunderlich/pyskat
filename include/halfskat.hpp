@@ -100,6 +100,10 @@ class Player {
         // is_declarer: indicates whether this player is the declarer.
         Cards::Card get_action(ObservableState const& state, int player_id);
         void put_transition(int const reward, ObservableState const& new_state, int player_id);
+        std::vector<Cards::Card> get_cards() { return m_cards; }
+        PlayerState get_last_state() { return m_last_state; }
+        Cards::Card get_last_action() { return m_last_action; }
+        boost::circular_buffer<Transition> get_transitions() { return m_transitions; }
         virtual Cards::Card query_policy() { throw std::runtime_error("Not implemented."); }
     protected:
         std::vector<Cards::Card> m_cards;
