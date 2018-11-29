@@ -43,7 +43,7 @@ std::ostream& Cards::operator<< (std::ostream& os, Card const& card) {
 }
 
 std::ostream& Cards::operator<< (std::ostream& os, std::vector<Card> const& cards) {
-    int i = 0;
+    size_t i = 0;
     for (auto card : cards) {
         os << std::to_string(i+1) << ". " << card;
         if (i++ < cards.size()-1) {

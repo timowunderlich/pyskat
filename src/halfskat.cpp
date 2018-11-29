@@ -39,7 +39,7 @@ Cards::Card HumanPlayer::query_policy() {
     bool valid_input = false;
     while (not valid_input) {
         std::getline(std::cin, input);
-        int num = std::stoi(input);
+        size_t num = std::stoi(input);
         if ((num > m_cards.size()) or (num < 1)) {
             std::cout << "\nEnter valid number. Try again: ";
         }
