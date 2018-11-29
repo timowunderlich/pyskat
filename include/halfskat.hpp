@@ -92,12 +92,6 @@ class Player {
     public:
         Player(int num_transitions = 1000) : m_transitions(boost::circular_buffer<Transition>(num_transitions)) {}
         virtual ~Player() = default;
-        // Pure virtual member function that takes public cards and returns card to be played.
-        // Arguments:
-        // won_cards: cards previously won by players.
-        // trick: cards in current trick.
-        // played_by_declarer: indicates which cards were played by the declarer.
-        // is_declarer: indicates whether this player is the declarer.
         Cards::Card get_action(ObservableState const& state, int player_id);
         void put_transition(int const reward, ObservableState const& new_state, int player_id);
         std::vector<Cards::Card> get_cards() { return m_cards; }
@@ -295,36 +289,38 @@ class Game {
             std::vector<Cards::Card> legal_cards;
             bool in_legals = false;
             state_before = get_observable_state();
-            while ((not in_legals) and retry_on_illegal) {
+            while (not in_legals) {
                 played_card = players[current_player]->get_action(state_before, current_player);
                 BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
                 // Check if legal move
                 legal_cards = get_legal_cards(players[current_player]->m_cards);
                 in_legals = (std::find(legal_cards.begin(), legal_cards.end(), played_card) != legal_cards.end());
                 BOOST_LOG_TRIVIAL(debug) << "This move is legal: " << in_legals;
+                if (not retry_on_illegal) break;
             }
             remove_card_from_current_player(played_card);
             played_card.played_by = current_player;
-            trick.push_back(played_card);
-            played_by_declarer.push_back(current_player_is_declarer);
             if (not in_legals) { // Abort game, illegal move
                 state = early_abort;
                 players[current_player]->put_transition(-1, get_observable_state(), current_player);
+                BOOST_LOG_TRIVIAL(debug) << "Early game abort, resetting cards";
+                reset_cards();
                 return;
             }
+            trick.push_back(played_card);
+
             if (trick.size() == 3) { // End of trick reached
                 BOOST_LOG_TRIVIAL(debug) << "End of trick reached: " << trick;
                 // Determine winner and manage cards
                 int winner = get_trick_winner();
                 won_cards[winner].insert(won_cards[winner].end(), trick.begin(), trick.end());
                 trick.clear();
-                played_by_declarer.clear();
                 tricks_played++;
                 current_player = winner;
                 state_after = get_observable_state();
                 // Provide state transitions to players 
                 if ((round != max_rounds) and (tricks_played != cards_per_player)) { // Only if game isn't over
-                    for (int i=0; i<players.size(); i++) {
+                    for (size_t i=0; i<players.size(); i++) {
                         players[i]->put_transition(0, state_after, i);
                     }
                 }
@@ -341,6 +337,9 @@ class Game {
             int starting_round = round;
             while (round == starting_round) {
                 step_by_trick();
+                if (state == early_abort) {
+                    return;
+                }
                 if (tricks_played == cards_per_player) { // Round finished
                     BOOST_LOG_TRIVIAL(debug) << "End of round reached";
                     // Declarer receives the Skat
@@ -375,6 +374,9 @@ class Game {
         void run_whole_game() { 
             while (state == ongoing) {
                 step_by_round();
+                if (state == early_abort) {
+                    return;
+                }
                 if (round > max_rounds) {
                     game_winner = get_game_winner();
                     int not_winner = (game_winner + 1) % 3;
@@ -416,10 +418,15 @@ class Game {
             {Cards::Color::Spades, Cards::Rank::Nine}, {Cards::Color::Spades, Cards::Rank::Eight}, {Cards::Color::Spades, Cards::Rank::Seven}}};
         std::vector<Cards::Card> skat;
         std::vector<Cards::Card> trick;
-        std::vector<bool> played_by_declarer; // Indicates which trick cards were played by declarer
         std::uniform_int_distribution<> rand_distr{0, 2};
         void reset_cards() {
             trick.clear();
+            for (auto& wc: won_cards) {
+                wc.clear();
+            }
+            for (auto& p: points) {
+                p = 0;
+            }
             // Generate cards
             std::vector<Cards::Card> cards = Cards::get_full_shuffled_deck();
             assert(cards.size() == (cards_per_player*3 + cards_in_skat));
