@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/chrono.h>
 #include <Python.h>
+#include <sstream>
 
 #include "halfskat.hpp"
 #include "cards.hpp"
@@ -48,13 +49,15 @@ PYBIND11_MODULE(pyskat, m) {
     // HalfSkat bindings
     py::class_<HalfSkat::Player, std::shared_ptr<HalfSkat::Player>>(m, "Player")
         .def(py::init<>())
-        .def("get_action", &HalfSkat::Player::get_action);
+        .def("query_policy", &HalfSkat::Player::query_policy)
+        .def("get_cards", &HalfSkat::Player::get_cards)
+        .def("get_last_state", &HalfSkat::Player::get_last_state)
+        .def("get_last_action", &HalfSkat::Player::get_last_action)
+        .def("get_transitions", &HalfSkat::Player::get_transitions);
     py::class_<HalfSkat::RandomPlayer, std::shared_ptr<HalfSkat::RandomPlayer>>(m, "RandomPlayer")
-        .def(py::init<>())
-        .def("get_action", &HalfSkat::Player::get_action);
+        .def(py::init<>());
     py::class_<HalfSkat::HumanPlayer, std::shared_ptr<HalfSkat::HumanPlayer>>(m, "HumanPlayer")
-        .def(py::init<>())
-        .def("get_action", &HalfSkat::Player::get_action);
+        .def(py::init<>());
     py::class_<HalfSkat::Game>(m, "Game")
         .def(py::init<int const, bool const>(), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
         .def(py::init<std::shared_ptr<HalfSkat::Player>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
