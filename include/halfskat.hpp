@@ -371,7 +371,14 @@ class Game {
             return;
         }
 
-        void run_whole_game() { 
+        void run_new_game() {
+            reset_cards();
+            reset_points();
+            state = ongoing;
+            step_by_game();
+        }
+
+        void step_by_game() { 
             while (state == ongoing) {
                 step_by_round();
                 if (state == early_abort) {
@@ -419,13 +426,15 @@ class Game {
         std::vector<Cards::Card> skat;
         std::vector<Cards::Card> trick;
         std::uniform_int_distribution<> rand_distr{0, 2};
+        void reset_points() {
+            for (auto& p: points) {
+                p = 0;
+            }
+        }
         void reset_cards() {
             trick.clear();
             for (auto& wc: won_cards) {
                 wc.clear();
-            }
-            for (auto& p: points) {
-                p = 0;
             }
             // Generate cards
             std::vector<Cards::Card> cards = Cards::get_full_shuffled_deck();
