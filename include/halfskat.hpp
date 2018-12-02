@@ -359,7 +359,6 @@ class Game {
                     // Reset cards and move player designations if game isn't finished 
                     if (round <= max_rounds) {
                         reset_cards();
-                        reset_won_cards();
                         // Set declarer, dealer to next player
                         declarer = (declarer + 1) % 3;
                         dealer = (dealer + 1) % 3;
@@ -453,12 +452,6 @@ class Game {
             BOOST_LOG_TRIVIAL(debug) << "Skat: " << skat;
         }
         
-        void reset_won_cards() {
-            for (auto& wc: won_cards) {
-                wc.clear();
-            }
-        }
-
         void remove_card_from_current_player(Cards::Card const& card) {
             for(auto it = players[current_player]->m_cards.begin(); it != players[current_player]->m_cards.end(); ++it) {
                 if (*it == card) {
