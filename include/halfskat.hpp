@@ -126,6 +126,7 @@ class Game {
             players[1] = std::make_shared<RandomPlayer>();
             players[2] = std::make_shared<RandomPlayer>();
             reset_cards();
+            reset_players();
         }
         
         Game(std::shared_ptr<Player> first_player, int const max_rounds = 1000, bool retry_on_illegal_action = false) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
@@ -133,6 +134,7 @@ class Game {
             players[1] = std::make_shared<RandomPlayer>();
             players[2] = std::make_shared<RandomPlayer>();
             reset_cards();
+            reset_players();
         }
 
         ObservableState get_observable_state() const {
@@ -373,7 +375,11 @@ class Game {
         void run_new_game() {
             reset_cards();
             reset_points();
+            reset_players();
             state = ongoing;
+            game_winner = -1;
+            round = 0;
+            tricks_played = 0;
             step_by_game();
         }
 
@@ -429,6 +435,12 @@ class Game {
             for (auto& p: points) {
                 p = 0;
             }
+        }
+        void reset_players() {
+            std::uniform_int_distribution<> distr(0, 2);
+            declarer = distr(rng);
+            dealer = distr(rng);
+            current_player = (dealer+1) % 3;
         }
         void reset_cards() {
             trick.clear();

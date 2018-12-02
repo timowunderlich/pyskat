@@ -124,8 +124,8 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     std::array<int, 3> games_won = {{-n/3, -n/3, -n/3}};
     int const expected_var = std::round(n * (2/9.));
     int const expected_sigma = std::sqrt(expected_var);
+    Game game(1000, true);
     for (int i=0; i<n; i++) {
-        Game game(1000, true);
         game.run_new_game();
         winner = game.get_game_winner();
         games_won[winner]++;
