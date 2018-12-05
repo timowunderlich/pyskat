@@ -106,6 +106,7 @@ class Player {
         std::vector<Transition> m_transitions;
 };
 
+// Trampoline class to enable overriding from Python
 class PyPlayer : public Player {
     public:
         using Player::Player;
