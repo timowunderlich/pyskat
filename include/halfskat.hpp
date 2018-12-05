@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <pybind11/pybind11.h>
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <algorithm>
@@ -97,12 +98,24 @@ class Player {
         PlayerState get_last_state() { return m_last_state; }
         Cards::Card get_last_action() { return m_last_action; }
         std::vector<Transition> get_transitions() { return m_transitions; }
-        virtual Cards::Card query_policy() { throw std::runtime_error("Not implemented."); }
+        virtual Cards::Card query_policy() = 0 ;
     protected:
         std::vector<Cards::Card> m_cards;
         PlayerState m_last_state;
         Cards::Card m_last_action;
         std::vector<Transition> m_transitions;
+};
+
+class PyPlayer : public Player {
+    public:
+        using Player::Player;
+        Cards::Card query_policy() override {
+            PYBIND11_OVERLOAD_PURE(
+                Cards::Card,
+                Player,
+                query_policy
+            );
+        }
 };
 
 class RandomPlayer : public Player {

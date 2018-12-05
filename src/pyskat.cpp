@@ -47,7 +47,7 @@ PYBIND11_MODULE(pyskat, m) {
     m.def("get_suit_base_value", (int (*)(Cards::Color const&)) &Cards::get_suit_base_value);
 
     // HalfSkat bindings
-    py::class_<HalfSkat::Player, std::shared_ptr<HalfSkat::Player>>(m, "Player")
+    py::class_<HalfSkat::Player, std::shared_ptr<HalfSkat::Player>, HalfSkat::PyPlayer>(m, "Player")
         .def(py::init<>())
         .def("query_policy", &HalfSkat::Player::query_policy)
         .def("get_cards", &HalfSkat::Player::get_cards)
