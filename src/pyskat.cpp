@@ -48,21 +48,26 @@ PYBIND11_MODULE(pyskat, m) {
 
     // HalfSkat bindings
     py::class_<HalfSkat::Player, std::shared_ptr<HalfSkat::Player>>(m, "Player")
-        .def(py::init<int const>(), py::arg("num_transitions") = 1000)
+        .def(py::init<>())
         .def("query_policy", &HalfSkat::Player::query_policy)
         .def("get_cards", &HalfSkat::Player::get_cards)
         .def("get_last_state", &HalfSkat::Player::get_last_state)
         .def("get_last_action", &HalfSkat::Player::get_last_action)
         .def("get_transitions", &HalfSkat::Player::get_transitions);
     py::class_<HalfSkat::RandomPlayer, std::shared_ptr<HalfSkat::RandomPlayer>>(m, "RandomPlayer")
-        .def(py::init<>());
+        .def(py::init<>())
+        .def("query_policy", &HalfSkat::Player::query_policy)
+        .def("get_cards", &HalfSkat::Player::get_cards)
+        .def("get_last_state", &HalfSkat::Player::get_last_state)
+        .def("get_last_action", &HalfSkat::Player::get_last_action)
+        .def("get_transitions", &HalfSkat::Player::get_transitions);
     py::class_<HalfSkat::HumanPlayer, std::shared_ptr<HalfSkat::HumanPlayer>>(m, "HumanPlayer")
         .def(py::init<>());
     py::class_<HalfSkat::Game>(m, "Game")
         .def(py::init<int const, bool const>(), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
-        .def(py::init<std::shared_ptr<HalfSkat::Player>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
-        .def(py::init<std::shared_ptr<HalfSkat::RandomPlayer>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
-        .def(py::init<std::shared_ptr<HalfSkat::HumanPlayer>, int const>(), py::arg("first_player"), py::arg("max_rounds") = 1000)
+        .def(py::init<std::shared_ptr<HalfSkat::Player>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
+        .def(py::init<std::shared_ptr<HalfSkat::RandomPlayer>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
+        .def(py::init<std::shared_ptr<HalfSkat::HumanPlayer>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
         .def("step_by_trick", &HalfSkat::Game::step_by_trick)
         .def("step_by_round", &HalfSkat::Game::step_by_round)
         .def("step_by_game", &HalfSkat::Game::step_by_game)
@@ -72,4 +77,17 @@ PYBIND11_MODULE(pyskat, m) {
         .def("get_round", &HalfSkat::Game::get_round)
         .def("get_max_rounds", &HalfSkat::Game::get_max_rounds)
         .def_readonly("trump", &HalfSkat::Game::trump);
+    py::class_<HalfSkat::Transition>(m, "Transition")
+        .def_readonly("before", &HalfSkat::Transition::before)
+        .def_readonly("after", &HalfSkat::Transition::after)
+        .def_readonly("reward", &HalfSkat::Transition::reward)
+        .def_readonly("action", &HalfSkat::Transition::action);
+    py::class_<HalfSkat::PlayerState>(m, "PlayerState")
+        .def_readonly("hole_cards", &HalfSkat::PlayerState::hole_cards)
+        .def_readonly("trick", &HalfSkat::PlayerState::trick)
+        .def_readonly("trick_friendly", &HalfSkat::PlayerState::trick_friendly)
+        .def_readonly("trick_hostile", &HalfSkat::PlayerState::trick_hostile)
+        .def_readonly("won_friendly", &HalfSkat::PlayerState::won_friendly)
+        .def_readonly("won_hostile", &HalfSkat::PlayerState::won_hostile)
+        .def_readonly("is_declarer", &HalfSkat::PlayerState::is_declarer);
 }
