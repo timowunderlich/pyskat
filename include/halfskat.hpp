@@ -134,7 +134,7 @@ class HumanPlayer : public Player {
 class Game {
     public:
         Game(int const max_rounds = 1000, bool const retry_on_illegal_action = false);
-        Game(std::shared_ptr<Player> first_player, int const max_rounds = 1000, bool retry_on_illegal_action = false);
+        Game(std::shared_ptr<Player> first_player, std::shared_ptr<Player> second_player, std::shared_ptr<Player> third_player, int const max_rounds = 1000, bool retry_on_illegal_action = false);
 
         ObservableState get_observable_state() const;
         std::vector<Cards::Card> get_legal_cards(std::vector<Cards::Card> const& players_cards) const;

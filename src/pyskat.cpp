@@ -65,9 +65,7 @@ PYBIND11_MODULE(pyskat, m) {
         .def(py::init<>());
     py::class_<HalfSkat::Game>(m, "Game")
         .def(py::init<int const, bool const>(), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
-        .def(py::init<std::shared_ptr<HalfSkat::Player>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
-        .def(py::init<std::shared_ptr<HalfSkat::RandomPlayer>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
-        .def(py::init<std::shared_ptr<HalfSkat::HumanPlayer>, int const, bool const>(), py::arg("first_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
+        .def(py::init<std::shared_ptr<HalfSkat::Player>, std::shared_ptr<HalfSkat::Player>, std::shared_ptr<HalfSkat::Player>, int const, bool const>(), py::arg("first_player"), py::arg("second_player"), py::arg("third_player"), py::arg("max_rounds") = 1000, py::arg("retry_on_illegal_action") = false)
         .def("step_by_trick", &HalfSkat::Game::step_by_trick)
         .def("step_by_round", &HalfSkat::Game::step_by_round)
         .def("step_by_game", &HalfSkat::Game::step_by_game)

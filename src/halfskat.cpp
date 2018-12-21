@@ -60,10 +60,10 @@ Game::Game(int const max_rounds, bool const retry_on_illegal_action) : max_round
     reset_players();
 }
 
-Game::Game(std::shared_ptr<Player> first_player, int const max_rounds, bool retry_on_illegal_action) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
-    players[0] = std::move(first_player);
-    players[1] = std::make_shared<RandomPlayer>();
-    players[2] = std::make_shared<RandomPlayer>();
+Game::Game(std::shared_ptr<Player> first_player, std::shared_ptr<Player> second_player, std::shared_ptr<Player> third_player, int const max_rounds, bool retry_on_illegal_action) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
+    players[0] = first_player;
+    players[1] = second_player;
+    players[2] = third_player;
     reset_cards();
     reset_players();
 }
