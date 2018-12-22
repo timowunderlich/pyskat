@@ -29,6 +29,7 @@ PYBIND11_MODULE(pyskat, m) {
     py::class_<Cards::Card>(m, "Card")
         .def(py::init<>())
         .def(py::init<Cards::Color const, Cards::Rank const>())
+        .def(py::init<std::array<bool, 32> const>())
         .def(py::self == py::self)
         .def_readwrite("color", &Cards::Card::color)
         .def("__str__", [](Cards::Card const& c) { 
@@ -40,11 +41,13 @@ PYBIND11_MODULE(pyskat, m) {
             ss << "<Card: "  << c << ">"; 
             return ss.str(); })
         .def_readwrite("rank", &Cards::Card::rank)
-        .def_readwrite("played_by", &Cards::Card::played_by);
+        .def_readwrite("played_by", &Cards::Card::played_by)
+        .def("to_one_hot", &Cards::Card::to_one_hot);
     m.def("get_full_shuffled_deck", &Cards::get_full_shuffled_deck);
     m.def("get_card_points", &Cards::get_card_points);
     m.def("get_suit_base_value", (int (*)(Cards::Card const&)) &Cards::get_suit_base_value);
     m.def("get_suit_base_value", (int (*)(Cards::Color const&)) &Cards::get_suit_base_value);
+    m.def("get_multi_hot", &Cards::get_multi_hot);
 
     // HalfSkat bindings
     py::class_<HalfSkat::Player, std::shared_ptr<HalfSkat::Player>, HalfSkat::PyPlayer>(m, "Player")
