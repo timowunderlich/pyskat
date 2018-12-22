@@ -60,3 +60,14 @@ std::array<bool, 32> Cards::Card::to_one_hot() const {
     result.at(idx) = true;
     return result;
 }
+
+// Returns array that indicates which cards are presented in the given vector of cards
+std::array<bool, 32> Cards::get_multi_hot(std::vector<Card> const& cards) {
+    std::array<bool, 32> result;
+    result.fill(false);
+    for (auto const c: cards) {
+        int idx = std::distance(AllCards.begin(), std::find(AllCards.begin(), AllCards.end(), c));
+        result.at(idx) = true;
+    }
+    return result;
+}

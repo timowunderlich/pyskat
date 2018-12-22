@@ -58,20 +58,40 @@ TEST(CardsTest, RankRankingCorrect) {
 }
 
 TEST(CardsTest, OneHotWorks) {
-    Card c1 = {Clubs, Jack};
+    Card const c1 = {Clubs, Jack};
     auto const onehot1 = c1.to_one_hot();
     ASSERT_EQ(onehot1.size(), 32);
     int const truecount1 = std::count(onehot1.begin(), onehot1.end(), true);
     int const falsecount1 = std::count(onehot1.begin(), onehot1.end(), false);
     ASSERT_EQ(truecount1, 1);
     ASSERT_EQ(falsecount1, 31);
-    Card c2 = {Hearts, Seven};
+    Card const c2 = {Hearts, Seven};
     auto const onehot2 = c2.to_one_hot();
     int const truecount2 = std::count(onehot2.begin(), onehot2.end(), true);
     int const falsecount2 = std::count(onehot2.begin(), onehot2.end(), false);
     ASSERT_EQ(truecount2, 1);
     ASSERT_EQ(falsecount2, 31);
     ASSERT_NE(onehot1, onehot2);
+}
+
+TEST(CardsTest, MultiHotWorks) {
+    Card const c1 = {Clubs, Jack};
+    Card const c2 = {Hearts, Seven};
+    Card const c3 = {Diamonds, Nine};
+    std::vector<Card> const cards = {c1, c2, c3};
+    auto const multihot = get_multi_hot(cards);
+    ASSERT_EQ(multihot.size(), 32);
+    ASSERT_EQ(std::count(multihot.begin(), multihot.end(), true), 3);
+    ASSERT_EQ(std::count(multihot.begin(), multihot.end(), false), 32-3);
+    auto const onehot1 = c1.to_one_hot();
+    auto const onehot2 = c2.to_one_hot();
+    auto const onehot3 = c3.to_one_hot();
+    int const idx1 = std::distance(onehot1.begin(), std::find(onehot1.begin(), onehot1.end(), true));
+    int const idx2 = std::distance(onehot2.begin(), std::find(onehot2.begin(), onehot2.end(), true));
+    int const idx3 = std::distance(onehot3.begin(), std::find(onehot3.begin(), onehot3.end(), true));
+    ASSERT_EQ(multihot.at(idx1), true);
+    ASSERT_EQ(multihot.at(idx2), true);
+    ASSERT_EQ(multihot.at(idx3), true);
 }
 
 TEST(HalfSkatTest, RandomGameLegalActions) {
