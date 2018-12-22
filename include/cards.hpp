@@ -28,6 +28,7 @@ struct Card {
     int played_by = -1;
     Card(Color const c, Rank const r) : color(c), rank(r) {};
     Card() {};
+    Card(std::array<bool, 32> const onehot);
     std::array<bool, 32> to_one_hot() const;
     bool operator==(Card const& card) const { return ((color == card.color) && (rank == card.rank)); }
 };

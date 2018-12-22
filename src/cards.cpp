@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <chrono>
+#include <stdexcept>
 
 #include "cards.hpp"
 
@@ -51,6 +52,17 @@ std::ostream& Cards::operator<< (std::ostream& os, std::vector<Card> const& card
         }
     }
     return os;
+}
+
+Card::Card(std::array<bool, 32> const onehot) {
+    int const cnt = std::count(onehot.begin(), onehot.end(), true);
+    if ((cnt != 1) or (onehot.size() != 32)) {
+        throw std::runtime_error("Must be one-hot array of length 32.");
+    }
+    int const idx = std::distance(onehot.begin(), std::find(onehot.begin(), onehot.end(), true));
+    Card const c = AllCards.at(idx);
+    color = c.color;
+    rank = c.rank;
 }
 
 std::array<bool, 32> Cards::Card::to_one_hot() const {

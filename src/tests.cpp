@@ -60,6 +60,8 @@ TEST(CardsTest, RankRankingCorrect) {
 TEST(CardsTest, OneHotWorks) {
     Card const c1 = {Clubs, Jack};
     auto const onehot1 = c1.to_one_hot();
+    Card const c1_ = onehot1;
+    ASSERT_EQ(c1, c1_);
     ASSERT_EQ(onehot1.size(), 32);
     int const truecount1 = std::count(onehot1.begin(), onehot1.end(), true);
     int const falsecount1 = std::count(onehot1.begin(), onehot1.end(), false);
