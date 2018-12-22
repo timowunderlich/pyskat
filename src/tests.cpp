@@ -57,6 +57,23 @@ TEST(CardsTest, RankRankingCorrect) {
     ASSERT_LT(Seven, Eight);
 }
 
+TEST(CardsTest, OneHotWorks) {
+    Card c1 = {Clubs, Jack};
+    auto const onehot1 = c1.to_one_hot();
+    ASSERT_EQ(onehot1.size(), 32);
+    int const truecount1 = std::count(onehot1.begin(), onehot1.end(), true);
+    int const falsecount1 = std::count(onehot1.begin(), onehot1.end(), false);
+    ASSERT_EQ(truecount1, 1);
+    ASSERT_EQ(falsecount1, 31);
+    Card c2 = {Hearts, Seven};
+    auto const onehot2 = c2.to_one_hot();
+    int const truecount2 = std::count(onehot2.begin(), onehot2.end(), true);
+    int const falsecount2 = std::count(onehot2.begin(), onehot2.end(), false);
+    ASSERT_EQ(truecount2, 1);
+    ASSERT_EQ(falsecount2, 31);
+    ASSERT_NE(onehot1, onehot2);
+}
+
 TEST(HalfSkatTest, RandomGameLegalActions) {
     Game game;
     std::vector<Card> cards = {{Clubs, Jack}, {Hearts, Ten}, {Diamonds, Nine}, {Clubs, Ten}, {Spades, King}};

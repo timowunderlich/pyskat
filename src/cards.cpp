@@ -52,3 +52,11 @@ std::ostream& Cards::operator<< (std::ostream& os, std::vector<Card> const& card
     }
     return os;
 }
+
+std::array<bool, 32> Cards::Card::to_one_hot() const {
+    std::array<bool, 32> result;
+    result.fill(false);
+    int idx = std::distance(AllCards.begin(), std::find(AllCards.begin(), AllCards.end(), *this));
+    result.at(idx) = true;
+    return result;
+}

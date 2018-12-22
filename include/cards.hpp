@@ -28,8 +28,14 @@ struct Card {
     int played_by = -1;
     Card(Color const c, Rank const r) : color(c), rank(r) {};
     Card() {};
+    std::array<bool, 32> to_one_hot() const;
     bool operator==(Card const& card) const { return ((color == card.color) && (rank == card.rank)); }
 };
+
+static const std::array<Card, 32> AllCards = {{{Clubs, Seven}, {Clubs, Eight}, {Clubs, Nine}, {Clubs, Ten}, {Clubs, Jack}, {Clubs, Queen}, {Clubs, King}, {Clubs, Ace}, 
+{Spades, Seven}, {Spades, Eight}, {Spades, Nine}, {Spades, Ten}, {Spades, Jack}, {Spades, Queen}, {Spades, King}, {Spades, Ace}, 
+{Hearts, Seven}, {Hearts, Eight}, {Hearts, Nine}, {Hearts, Ten}, {Hearts, Jack}, {Hearts, Queen}, {Hearts, King}, {Hearts, Ace}, 
+{Diamonds, Seven}, {Diamonds, Eight}, {Diamonds, Nine}, {Diamonds, Ten}, {Diamonds, Jack}, {Diamonds, Queen}, {Diamonds, King}, {Diamonds, Ace}}};
 
 std::ostream& operator<< (std::ostream& os, Card const& card);
 std::ostream& operator<< (std::ostream& os, std::vector<Card> const& cards);
@@ -38,5 +44,6 @@ std::vector<Card> get_full_shuffled_deck();
 int get_card_points(std::vector<Card> const& cards);
 int get_suit_base_value(Card const& card);
 int get_suit_base_value(Color const& color);
+std::array<bool, 32> get_multi_hot(std::vector<Card> const& cards);
 
 } // namespace Cards
