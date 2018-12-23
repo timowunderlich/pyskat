@@ -57,7 +57,8 @@ PYBIND11_MODULE(pyskat, m) {
         .def("get_cards", &HalfSkat::Player::get_cards)
         .def("get_last_state", &HalfSkat::Player::get_last_state)
         .def("get_last_action", &HalfSkat::Player::get_last_action)
-        .def("get_transitions", &HalfSkat::Player::get_transitions);
+        .def("get_transitions", &HalfSkat::Player::get_transitions)
+        .def("clear_transitions", &HalfSkat::Player::clear_transitions);
     py::class_<HalfSkat::RandomPlayer, std::shared_ptr<HalfSkat::RandomPlayer>>(m, "RandomPlayer")
         .def(py::init<>())
         .def("query_policy", &HalfSkat::Player::query_policy)

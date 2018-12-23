@@ -98,6 +98,7 @@ class Player {
         PlayerState get_last_state() { return m_last_state; }
         Cards::Card get_last_action() { return m_last_action; }
         std::vector<Transition> get_transitions() { return m_transitions; }
+        void clear_transitions() { m_transitions.clear(); }
         virtual Cards::Card query_policy() = 0 ;
     protected:
         std::vector<Cards::Card> m_cards;
