@@ -85,10 +85,11 @@ class PlayerTrainer(object):
         self.game = pyskat.Game(self.one, self.two, self.three, retry_on_illegal_action=False)
 
     def train(self, eps=1000, games_per_ep=100):
-        for _ in range(eps):
-            for _ in range(games_per_ep):
+        for ep in range(eps):
+            for g in range(games_per_ep):
                 trainer.game.run_new_game()
             for player in trainer.players:
+                print("In episode {}".format(ep))
                 player.train_on_transitions()
 
 if __name__ == "__main__":
