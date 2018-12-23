@@ -30,6 +30,7 @@ PYBIND11_MODULE(pyskat, m) {
         .def(py::init<>())
         .def(py::init<Cards::Color const, Cards::Rank const>())
         .def(py::init<std::array<bool, 32> const>())
+        .def(py::init<int const>())
         .def(py::self == py::self)
         .def_readwrite("color", &Cards::Card::color)
         .def("__str__", [](Cards::Card const& c) { 

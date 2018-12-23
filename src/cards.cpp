@@ -65,6 +65,13 @@ Card::Card(std::array<bool, 32> const onehot) {
     rank = c.rank;
 }
 
+Card::Card(int const card_id) {
+    assert((32 > card_id) and (card_id >= 0));
+    Card const c = AllCards.at(card_id);
+    color = c.color;
+    rank = c.rank;
+}
+
 std::array<bool, 32> Cards::Card::to_one_hot() const {
     std::array<bool, 32> result;
     result.fill(false);
