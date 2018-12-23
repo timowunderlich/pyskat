@@ -3,14 +3,22 @@
 #include <pybind11/stl.h>
 #include <pybind11/chrono.h>
 #include <Python.h>
+#include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
 #include <sstream>
 
 #include "halfskat.hpp"
 #include "cards.hpp"
 
 namespace py = pybind11;
+namespace logging = boost::log;
 
 PYBIND11_MODULE(pyskat, m) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::error
+    );
     // Cards bindings
     py::enum_<Cards::Color>(m, "Color")
         .value("Diamonds", Cards::Color::Diamonds)
