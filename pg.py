@@ -6,7 +6,7 @@ from tensorflow._api.v1.keras import layers
 class PolicyPlayer(pyskat.Player):
     # total input size = hole cards + friendly trick + hostile trick + friendly won + hostile won + is declarer
     input_size = 32 + 32 + 32 + 32 + 32 + 1
-    default_hparams = {"hidden_size_1": 150, "hidden_size_2": 100}
+    default_hparams = {"hidden_size_1": 150, "hidden_size_2": 150, "hidden_size_3": 100}
     def __init__(self, hparams=default_hparams):
         super(PolicyPlayer, self).__init__()
         self.hparams = hparams
@@ -14,7 +14,8 @@ class PolicyPlayer(pyskat.Player):
         input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
         hidden_layer_1 = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
         hidden_layer_2 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_1)
-        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer_2)
+        hidden_layer_3 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_2)
+        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer_3)
         self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
         # Create training model that wraps above model
         reward_input = layers.Input(shape=(1,))
