@@ -5,22 +5,23 @@ from tensorflow._api.v1.keras import layers
 
 class PolicyPlayer(pyskat.Player):
     # total input size = hole cards + friendly trick + hostile trick + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 32 + 32 + 32 + 1 
-    default_hparams = {"hidden_size": 100} 
+    input_size = 32 + 32 + 32 + 32 + 32 + 1
+    default_hparams = {"hidden_size_1": 150, "hidden_size_2": 100}
     def __init__(self, hparams=default_hparams):
         super(PolicyPlayer, self).__init__()
         self.hparams = hparams
         # Create policy model
         input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
-        hidden_layer = layers.Dense(hparams["hidden_size"], activation="relu")(input_layer)
-        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer)
+        hidden_layer_1 = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
+        hidden_layer_2 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_1)
+        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer_2)
         self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
         # Create training model that wraps above model
         reward_input = layers.Input(shape=(1,))
         self.training_model = tf.keras.Model(inputs=[input_layer, reward_input], outputs=softmax_layer)
-        self.training_model.compile(optimizer="rmsprop", loss=self.create_loss_function(reward_input))
-    
-    # Creates loss function that takes reward into account 
+        self.training_model.compile(optimizer="adam", loss=self.create_loss_function(reward_input))
+
+    # Creates loss function that takes reward into account
     def create_loss_function(self, reward_input):
         # y_true are one-hot action vectors, y_pred are network outputs
         def lossfct(y_true, y_pred):
@@ -84,7 +85,7 @@ class PlayerTrainer(object):
         self.players = [self.one, self.two, self.three]
         self.game = pyskat.Game(self.one, self.two, self.three, retry_on_illegal_action=False)
 
-    def train(self, eps=1000, games_per_ep=100):
+    def train(self, eps=100000, games_per_ep=100):
         for ep in range(eps):
             for g in range(games_per_ep):
                 trainer.game.run_new_game()
