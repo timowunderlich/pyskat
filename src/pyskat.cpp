@@ -96,8 +96,7 @@ PYBIND11_MODULE(pyskat, m) {
     py::class_<HalfSkat::PlayerState>(m, "PlayerState")
         .def_readonly("hole_cards", &HalfSkat::PlayerState::hole_cards)
         .def_readonly("trick", &HalfSkat::PlayerState::trick)
-        .def_readonly("trick_friendly", &HalfSkat::PlayerState::trick_friendly)
-        .def_readonly("trick_hostile", &HalfSkat::PlayerState::trick_hostile)
+        .def_readonly("trick_played_by_friend", &HalfSkat::PlayerState::trick_played_by_friend)
         .def_readonly("won_friendly", &HalfSkat::PlayerState::won_friendly)
         .def_readonly("won_hostile", &HalfSkat::PlayerState::won_hostile)
         .def_readonly("is_declarer", &HalfSkat::PlayerState::is_declarer);
