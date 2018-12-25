@@ -33,8 +33,7 @@ struct ObservableState {
 struct PlayerState {
     std::vector<Cards::Card> hole_cards;
     std::vector<Cards::Card> trick;
-    std::vector<Cards::Card> trick_friendly; // Part of trick that was played by me or friendly player
-    std::vector<Cards::Card> trick_hostile; // Part of trick that was played by hostile players
+    std::vector<bool> trick_played_by_friend;
     std::vector<Cards::Card> won_friendly; // Cards won by me or the friendly party
     std::vector<Cards::Card> won_hostile; // Cards won by hostile players
     bool is_declarer; // Indicates whether player is the declarer
@@ -61,18 +60,18 @@ struct PlayerState {
         for (auto c : public_state.trick) {
             if (is_declarer) {
                 if (c.played_by == player_id) {
-                    trick_friendly.push_back(c);
+                    trick_played_by_friend.push_back(true);
                 }
                 else {
-                    trick_hostile.push_back(c);
+                    trick_played_by_friend.push_back(false);
                 }
             }
             else {
                 if (c.played_by == public_state.declarer) {
-                    trick_hostile.push_back(c);
+                    trick_played_by_friend.push_back(false);
                 }
                 else {
-                    trick_friendly.push_back(c);
+                    trick_played_by_friend.push_back(true);
                 }
             }
         }

@@ -4,8 +4,8 @@ import tensorflow as tf
 from tensorflow._api.v1.keras import layers
 
 class PolicyPlayer(pyskat.Player):
-    # total input size = hole cards + friendly trick + hostile trick + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 32 + 32 + 32 + 1
+    # total input size = hole cards + trick + trick friend indicator + friendly won + hostile won + is declarer
+    input_size = 32 + 32 + 3 + 32 + 32 + 1
     def __init__(self, policy_model, training_model):
         super(PolicyPlayer, self).__init__()
         self.model = policy_model
@@ -17,8 +17,8 @@ class PolicyPlayer(pyskat.Player):
         # Sequentially create list with multi-hot card representation
         input_repr = list()
         input_repr.extend(pyskat.get_multi_hot(state.hole_cards)*np.ones(32))
-        input_repr.extend(pyskat.get_multi_hot(state.trick_friendly)*np.ones(32))
-        input_repr.extend(pyskat.get_multi_hot(state.trick_hostile)*np.ones(32))
+        input_repr.extend(pyskat.get_multi_hot(state.trick)*np.ones(32))
+        input_repr.extend(state.trick_played_by_friend*np.ones(32))
         input_repr.extend(pyskat.get_multi_hot(state.won_friendly)*np.ones(32))
         input_repr.extend(pyskat.get_multi_hot(state.won_hostile)*np.ones(32))
         input_repr.append(state.is_declarer * 1.)
@@ -56,9 +56,9 @@ class PolicyPlayer(pyskat.Player):
         return card
 
 class PlayerTrainer(object):
-    # total input size = hole cards + friendly trick + hostile trick + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 32 + 32 + 32 + 1
-    default_hparams = {"hidden_size_1": 150, "hidden_size_2": 150, "hidden_size_3": 100}
+    # total input size = hole cards + trick + trick friend indicator + friendly won + hostile won + is declarer
+    input_size = 32 + 32 + 3 + 32 + 32 + 1
+    default_hparams = {"hidden_size_1": 100, "hidden_size_2": 100, "hidden_size_3": 100}
     def __init__(self, hparams=default_hparams):
         self.hparams = hparams
         # Create policy model
@@ -85,7 +85,7 @@ class PlayerTrainer(object):
         def lossfct(y_true, y_pred):
             # This masks out all not taken actions
             action_probs = tf.keras.backend.sum(y_true*y_pred, axis=1)
-            loss =-(reward_input * tf.log(action_probs))
+            loss = -(reward_input * tf.log(action_probs))
             return loss
         return lossfct
 
