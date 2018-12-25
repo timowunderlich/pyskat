@@ -17,8 +17,8 @@ class PolicyPlayer(pyskat.Player):
         # Sequentially create list with multi-hot card representation
         input_repr = list()
         input_repr.extend(pyskat.get_multi_hot(state.hole_cards)*np.ones(32))
-        input_repr.extend(pyskat.get_multi_hot(state.trick)*np.ones(32))
-        input_repr.extend(state.trick_played_by_friend*np.ones(32))
+        input_repr.extend(np.array(pyskat.get_multi_hot(state.trick))*1.)
+        input_repr.extend(np.array(state.trick_played_by_friend)*1.)
         input_repr.extend(pyskat.get_multi_hot(state.won_friendly)*np.ones(32))
         input_repr.extend(pyskat.get_multi_hot(state.won_hostile)*np.ones(32))
         input_repr.append(state.is_declarer * 1.)
