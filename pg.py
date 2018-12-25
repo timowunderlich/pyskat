@@ -20,15 +20,15 @@ class PolicyPlayer(pyskat.Player):
         # Create training model that wraps above model
         reward_input = layers.Input(shape=(1,))
         self.training_model = tf.keras.Model(inputs=[input_layer, reward_input], outputs=softmax_layer)
-        self.training_model.compile(optimizer="adam", loss=self.create_loss_function(reward_input))
+        self.training_model.compile(optimizer="Nadam", loss=self.create_loss_function(reward_input))
 
     # Creates loss function that takes reward into account
     def create_loss_function(self, reward_input):
         # y_true are one-hot action vectors, y_pred are network outputs
         def lossfct(y_true, y_pred):
             # This masks out all not taken actions
-            action_probs = tf.reduce_sum(y_true*y_pred, axis=1)
-            loss = -tf.reduce_sum(reward_input * tf.log(action_probs))
+            action_probs = tf.keras.backend.sum(y_true*y_pred, axis=1)
+            loss =-(reward_input * tf.log(action_probs))
             return loss
         return lossfct
 
@@ -86,7 +86,7 @@ class PlayerTrainer(object):
         self.players = [self.one, self.two, self.three]
         self.game = pyskat.Game(self.one, self.two, self.three, retry_on_illegal_action=False)
 
-    def train(self, eps=100000, games_per_ep=100):
+    def train(self, eps=10000, games_per_ep=1000):
         for ep in range(eps):
             for g in range(games_per_ep):
                 trainer.game.run_new_game()
