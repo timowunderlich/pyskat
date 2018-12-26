@@ -4,8 +4,8 @@ import tensorflow as tf
 from tensorflow._api.v1.keras import layers
 
 class PolicyPlayer(pyskat.Player):
-    # total input size = hole cards + trick + trick friend indicator + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 3 + 32 + 32 + 1
+    # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
+    input_size = 32 + 32 + 32 + 32 + 32 + 1
     def __init__(self, policy_model, training_model):
         super(PolicyPlayer, self).__init__()
         self.model = policy_model
@@ -14,11 +14,13 @@ class PolicyPlayer(pyskat.Player):
     # Converts PlayerState into representation to be used as model input
     def convert_state_for_model(self, state):
         assert(isinstance(state, pyskat.PlayerState))
+        trick_card_1 = np.array(state.trick[0].to_one_hot())*1. if len(state.trick) > 0 else np.zeros(32)
+        trick_card_2 = np.array(state.trick[1].to_one_hot())*1. if len(state.trick) > 1 else np.zeros(32)
         # Sequentially create list with multi-hot card representation
         input_repr = list()
         input_repr.extend(pyskat.get_multi_hot(state.hole_cards)*np.ones(32))
-        input_repr.extend(np.array(pyskat.get_multi_hot(state.trick))*1.)
-        input_repr.extend(np.array(state.trick_played_by_friend)*1.)
+        input_repr.extend(trick_card_1)
+        input_repr.extend(trick_card_2)
         input_repr.extend(pyskat.get_multi_hot(state.won_friendly)*np.ones(32))
         input_repr.extend(pyskat.get_multi_hot(state.won_hostile)*np.ones(32))
         input_repr.append(state.is_declarer * 1.)
@@ -56,8 +58,8 @@ class PolicyPlayer(pyskat.Player):
         return card
 
 class PlayerTrainer(object):
-    # total input size = hole cards + trick + trick friend indicator + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 3 + 32 + 32 + 1
+    # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
+    input_size = 32 + 32 + 32 + 32 + 32 + 1
     default_hparams = {"hidden_size_1": 100, "hidden_size_2": 100, "hidden_size_3": 100}
     def __init__(self, hparams=default_hparams):
         self.hparams = hparams
