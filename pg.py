@@ -37,15 +37,12 @@ class PolicyPlayer(pyskat.Player):
             before_states.append(self.convert_state_for_model(t.before))
             actions.append(t.action.to_one_hot()*np.ones(32))
             rewards.append(t.reward)
-        return np.array(before_states), np.array(actions), np.array(rewards)
+        return before_states, actions, rewards
 
-    def train_on_transitions(self):
+    def get_transitions_for_model(self):
         states, actions, rewards = self.convert_transitions_for_model()
-        if len(states) == 0:
-            return
-        self.training_model.train_on_batch([states, rewards], actions)
-        print("Got average reward: {}".format(np.mean(rewards)))
         self.clear_transitions()
+        return states, actions, rewards
 
     # Is called by Game to get player's action, overrides pure virtual
     def query_policy(self):
@@ -90,14 +87,24 @@ class PlayerTrainer(object):
             loss = -(reward_input * tf.log(action_probs))
             return loss
         return lossfct
+    
+    def train_on_transitions(self):
+        states, actions, rewards = list(), list(), list()
+        for player in self.players:
+            new_states, new_actions, new_rewards = player.get_transitions_for_model()
+            states.extend(new_states)
+            actions.extend(new_actions)
+            rewards.extend(new_rewards)
+        states, actions, rewards = np.array(states), np.array(actions), np.array(rewards)
+        self.training_model.train_on_batch([states, rewards], actions)
+        print("Got average reward: {}".format(np.mean(rewards)))
 
     def train(self, eps=10000, games_per_ep=1000):
         for ep in range(eps):
             for _ in range(games_per_ep):
                 self.game.run_new_game()
-            for player in self.players:
-                print("In episode {}".format(ep))
-                player.train_on_transitions()
+            print("In episode {}".format(ep))
+            self.train_on_transitions()
 
 if __name__ == "__main__":
     trainer = PlayerTrainer()
