@@ -104,6 +104,7 @@ class Player {
         PlayerState m_last_state;
         Cards::Card m_last_action;
         std::vector<Transition> m_transitions;
+        bool m_await_transition = false;
 };
 
 // Trampoline class to enable overriding from Python

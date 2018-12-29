@@ -11,12 +11,16 @@ Cards::Card Player::get_action(ObservableState const& state, int player_id) {
     m_last_state = PlayerState(state, m_cards, player_id);
     Cards::Card action = query_policy();
     m_last_action = action;
+    m_await_transition = true;
     return action;
 }
 
 void Player::put_transition(int const reward, ObservableState const& new_state, int player_id) {
-    BOOST_LOG_TRIVIAL(debug) << "Putting new transition for player " << std::to_string(player_id) << ", reward: " << std::to_string(reward) << ", action: " << m_last_action;
-    m_transitions.push_back(Transition(m_last_state, PlayerState(new_state, m_cards, player_id), reward, m_last_action));
+    if (m_await_transition) {
+        BOOST_LOG_TRIVIAL(debug) << "Putting new transition for player " << std::to_string(player_id) << ", reward: " << std::to_string(reward) << ", action: " << m_last_action;
+        m_transitions.push_back(Transition(m_last_state, PlayerState(new_state, m_cards, player_id), reward, m_last_action));
+        m_await_transition = false;
+    }
 }
 
 Cards::Card RandomPlayer::query_policy() {
