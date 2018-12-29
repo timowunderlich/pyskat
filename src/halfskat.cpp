@@ -236,6 +236,10 @@ void Game::step_by_trick() {
     if (not in_legals) { // Abort game, illegal move
         state = early_abort;
         players[current_player]->put_transition(-1, get_observable_state(), current_player);
+        int other_player = (current_player+1) % 3;
+        players[other_player]->put_transition(0, get_observable_state(), other_player);
+        other_player = (other_player+1) % 3;
+        players[other_player]->put_transition(0, get_observable_state(), other_player);
         BOOST_LOG_TRIVIAL(debug) << "Early game abort, resetting cards";
         reset_cards();
         return;
