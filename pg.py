@@ -1,4 +1,5 @@
 import pyskat
+import sys
 import numpy as np
 import tensorflow as tf
 from tensorflow._api.v1.keras import layers
@@ -64,7 +65,7 @@ class PlayerTrainer(object):
         input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
         hidden_layer_1 = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
         hidden_layer_2 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_1)
-        hidden_layer_3 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_2)
+        hidden_layer_3 = layers.Dense(hparams["hidden_size_3"], activation="relu")(hidden_layer_2)
         softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer_3)
         self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
         # Create training model that wraps above model
@@ -84,7 +85,10 @@ class PlayerTrainer(object):
         def lossfct(y_true, y_pred):
             # This masks out all not taken actions
             action_probs = tf.keras.backend.sum(y_true*y_pred, axis=1)
-            loss = -(reward_input * tf.log(action_probs))
+            log_probs = tf.log(action_probs)
+            rewards = tf.squeeze(reward_input)
+            prod = tf.multiply(rewards, log_probs)
+            loss = -tf.keras.backend.sum(prod)
             return loss
         return lossfct
     
