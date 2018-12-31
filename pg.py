@@ -59,7 +59,7 @@ class PlayerTrainer(object):
     # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
     input_size = 32 + 32 + 32 + 32 + 32 + 1
     default_hparams = {"hidden_size_1": input_size, "hidden_size_2": input_size, "hidden_size_3": 100, "hidden_size_4": 100}
-    def __init__(self, hparams=default_hparams, save_to="skat_model.h5"):
+    def __init__(self, hparams=default_hparams, save_to=None):
         self.hparams = hparams
         self.save_to = save_to
         # Create policy model
@@ -111,7 +111,8 @@ class PlayerTrainer(object):
                 self.game.run_new_game()
             print("In episode {}".format(ep))
             self.train_on_transitions()
-            self.model.save(self.save_to)
+            if self.save_to is not None:
+                self.model.save(self.save_to)
 
 if __name__ == "__main__":
     trainer = PlayerTrainer()
