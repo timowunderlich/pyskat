@@ -1,5 +1,4 @@
 import pyskat
-import sys
 import numpy as np
 import tensorflow as tf
 from tensorflow._api.v1.keras import layers
