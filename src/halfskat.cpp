@@ -370,6 +370,12 @@ void Game::reset_cards() {
     std::move(cards.begin() + cards_per_player, cards.begin() + 2*cards_per_player, players[1]->m_cards.begin());
     std::move(cards.begin() + 2*cards_per_player, cards.begin() + 3*cards_per_player, players[2]->m_cards.begin());
     std::move(cards.begin() + 3*cards_per_player, cards.end(), skat.begin());
+    // Sort cards
+    for (auto& pl: players) {
+        std::sort(pl->m_cards.begin(), pl->m_cards.end(), [&](Cards::Card l, Cards::Card r) {
+            return Cards::get_suit_base_value(l) > Cards::get_suit_base_value(r);
+        });
+    }
     BOOST_LOG_TRIVIAL(debug) << "First player: " << players[0]->m_cards;
     BOOST_LOG_TRIVIAL(debug) << "Second player: " << players[1]->m_cards;
     BOOST_LOG_TRIVIAL(debug) << "Third player: " << players[2]->m_cards;
