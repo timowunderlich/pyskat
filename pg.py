@@ -115,5 +115,5 @@ class PlayerTrainer(object):
                 self.model.save(self.save_to)
 
 if __name__ == "__main__":
-    trainer = PlayerTrainer()
+    trainer = PlayerTrainer(save_to="skat_model.h5")
     trainer.train()
