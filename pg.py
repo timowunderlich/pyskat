@@ -1,7 +1,8 @@
 import pyskat
 import numpy as np
 import tensorflow as tf
-from tensorflow._api.v1.keras import layers
+from tensorflow._api.v1.keras import layers, models
+import argparse
 
 class PolicyPlayer(pyskat.Player):
     # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
@@ -58,21 +59,29 @@ class PlayerTrainer(object):
     # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
     input_size = 32 + 32 + 32 + 32 + 32 + 1
     default_hparams = {"hidden_size_1": input_size, "hidden_size_2": input_size, "hidden_size_3": 100, "hidden_size_4": 100}
-    def __init__(self, hparams=default_hparams, save_to=None):
+    def __init__(self, hparams=default_hparams, save_to=None, start_model=None):
         self.hparams = hparams
         self.save_to = save_to
-        # Create policy model
-        input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
-        hidden_layer = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
-        hidden_layer = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer)
-        hidden_layer = layers.Dense(hparams["hidden_size_3"], activation="relu")(hidden_layer)
-        hidden_layer = layers.Dense(hparams["hidden_size_4"], activation="relu")(hidden_layer)
-        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer)
-        self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
-        # Create training model that wraps above model
-        reward_input = layers.Input(shape=(1,))
-        self.training_model = tf.keras.Model(inputs=[input_layer, reward_input], outputs=softmax_layer)
-        self.training_model.compile(optimizer="rmsprop", loss=self.create_loss_function(reward_input))
+        if start_model is None:
+            # Create policy model
+            input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
+            hidden_layer = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
+            hidden_layer = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer)
+            hidden_layer = layers.Dense(hparams["hidden_size_3"], activation="relu")(hidden_layer)
+            hidden_layer = layers.Dense(hparams["hidden_size_4"], activation="relu")(hidden_layer)
+            softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer)
+            self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
+            # Create training model that wraps above model
+            reward_input = layers.Input(shape=(1,))
+            self.training_model = tf.keras.Model(inputs=[input_layer, reward_input], outputs=softmax_layer)
+            self.training_model.compile(optimizer="rmsprop", loss=self.create_loss_function(reward_input))
+        else:
+            self.model = models.load_model(start_model)
+            input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
+            reward_input = layers.Input(shape=(1,))
+            self.training_model = tf.keras.Model(inputs=[input_layer, reward_input], outputs=self.model(input_layer))
+            self.training_model.compile(optimizer="rmsprop", loss=self.create_loss_function(reward_input))
+
         # The three skateers
         self.one = PolicyPlayer(self.model, self.training_model)
         self.two = PolicyPlayer(self.model, self.training_model)
@@ -114,5 +123,8 @@ class PlayerTrainer(object):
                 self.model.save(self.save_to)
 
 if __name__ == "__main__":
-    trainer = PlayerTrainer(save_to="skat_model.h5")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start-model", type=str, help="Starting model filename (HDF5).")
+    args = parser.parse_args()
+    trainer = PlayerTrainer(start_model=args.start_model, save_to="skat_model.h5")
     trainer.train()
