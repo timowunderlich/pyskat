@@ -31,21 +31,16 @@ Cards::Card RandomPlayer::query_policy() {
 }
 
 Cards::Card HumanPlayer::query_policy() {
-    std::cout << "\nCurrent trick: " << m_last_state.trick;
-    std::cout << "\nPlayed by: ";
-    for (auto c : m_last_state.trick) {
-        std::cout << std::to_string(c.played_by) << " ";
-    }
-    std::cout << "\nYou are declarer: " << m_last_state.is_declarer;
-    std::cout << "\nYour current cards: " << m_cards;
-    std::cout << "\nEnter card to play: ";
+    BOOST_LOG_TRIVIAL(info) << "Getting action from human player.";
+    BOOST_LOG_TRIVIAL(info) << "\nYour current cards: " << m_cards;
+    BOOST_LOG_TRIVIAL(info) << "\nEnter card to play: ";
     std::string input;
     bool valid_input = false;
     while (not valid_input) {
         std::getline(std::cin, input);
         size_t num = std::stoi(input);
         if ((num > m_cards.size()) or (num < 1)) {
-            std::cout << "\nEnter valid number. Try again: ";
+            BOOST_LOG_TRIVIAL(info) << "\nEnter valid number. Try again: ";
         }
         else {
             return m_cards.at(num-1);
@@ -56,7 +51,7 @@ Cards::Card HumanPlayer::query_policy() {
 
 
 Game::Game(int const max_rounds, bool const retry_on_illegal_action) : max_rounds(max_rounds), retry_on_illegal(retry_on_illegal_action) {
-    BOOST_LOG_TRIVIAL(debug) << "Constructing new fully random Game.";
+    BOOST_LOG_TRIVIAL(info) << "Constructing new fully random Game.";
     players[0] = std::make_shared<RandomPlayer>();
     players[1] = std::make_shared<RandomPlayer>();
     players[2] = std::make_shared<RandomPlayer>();
@@ -136,8 +131,8 @@ int Game::get_trick_winner() {
         it = std::find(trick.begin(), trick.end(), c);
         if (it != trick.end()) {
             int winner = it->played_by;
-            BOOST_LOG_TRIVIAL(debug) << "Determined winning card to be: " << c;
-            BOOST_LOG_TRIVIAL(debug) << "Determined winning player to be: " << std::to_string(winner);
+            BOOST_LOG_TRIVIAL(info) << "Determined winning card to be: " << c;
+            BOOST_LOG_TRIVIAL(info) << "Determined winning player to be: " << std::to_string(winner);
             return winner;
         }
     }
@@ -193,8 +188,8 @@ int Game::get_game_level(std::vector<Cards::Card> const& cards) const {
 }
 
 void Game::step_by_trick() {
-    BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
-    BOOST_LOG_TRIVIAL(debug) << "Performing game step in round " << std::to_string(round);
+    BOOST_LOG_TRIVIAL(info) << "====================================================================================";
+    BOOST_LOG_TRIVIAL(info) << "Performing game step in round " << std::to_string(round);
     // First, determine input for player
     bool current_player_is_declarer;
     if (current_player == declarer) {
@@ -205,15 +200,15 @@ void Game::step_by_trick() {
         // Some players are friendly
         current_player_is_declarer = false;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Current round: " <<  round;
-    BOOST_LOG_TRIVIAL(debug) << "Current trick: " <<  trick;
-    BOOST_LOG_TRIVIAL(debug) << "Trick played by: ";
+    BOOST_LOG_TRIVIAL(info) << "Current round: " <<  round;
+    BOOST_LOG_TRIVIAL(info) << "Current trick: " <<  trick;
+    BOOST_LOG_TRIVIAL(info) << "Trick played by: ";
     for (auto c : trick) {
-        BOOST_LOG_TRIVIAL(debug) << std::to_string(c.played_by) << " ";
+        BOOST_LOG_TRIVIAL(info) << std::to_string(c.played_by) << " ";
     }
-    BOOST_LOG_TRIVIAL(debug) << "Current player: " <<  std::to_string(current_player);
-    BOOST_LOG_TRIVIAL(debug) << "Current dealer: " <<  std::to_string(dealer);
-    BOOST_LOG_TRIVIAL(debug) << "Current declarer: " <<  std::to_string(declarer);
+    BOOST_LOG_TRIVIAL(info) << "Current player: " <<  std::to_string(current_player);
+    BOOST_LOG_TRIVIAL(info) << "Current dealer: " <<  std::to_string(dealer);
+    BOOST_LOG_TRIVIAL(info) << "Current declarer: " <<  std::to_string(declarer);
     BOOST_LOG_TRIVIAL(debug) << "Current player is declarer: " <<  current_player_is_declarer;
     BOOST_LOG_TRIVIAL(debug) << "First player hand: " << players[0]->m_cards;
     BOOST_LOG_TRIVIAL(debug) << "Second player hand: " << players[1]->m_cards;
@@ -250,9 +245,9 @@ void Game::step_by_trick() {
         return;
     }
     trick.push_back(played_card);
-
+    BOOST_LOG_TRIVIAL(info) << "Player plays following card: " << played_card;
     if (trick.size() == 3) { // End of trick reached
-        BOOST_LOG_TRIVIAL(debug) << "End of trick reached: " << trick;
+        BOOST_LOG_TRIVIAL(info) << "End of trick reached: " << trick;
         // Determine winner and manage cards
         int winner = get_trick_winner();
         won_cards[winner].insert(won_cards[winner].end(), trick.begin(), trick.end());
@@ -268,10 +263,10 @@ void Game::step_by_trick() {
         }
     } 
     else { // Trick moves on 
-        BOOST_LOG_TRIVIAL(debug) << "It is the next player's turn";
+        BOOST_LOG_TRIVIAL(info) << "It is the next player's turn";
         current_player = (current_player + 1) % 3;
     }
-    BOOST_LOG_TRIVIAL(debug) << "====================================================================================";
+    BOOST_LOG_TRIVIAL(info) << "====================================================================================";
     return;
 }
 
@@ -283,20 +278,20 @@ void Game::step_by_round() {
             return;
         }
         if (tricks_played == cards_per_player) { // Round finished
-            BOOST_LOG_TRIVIAL(debug) << "End of round reached";
+            BOOST_LOG_TRIVIAL(info) << "End of round reached.";
             // Declarer receives the Skat
             won_cards[declarer].insert(won_cards[declarer].end(), skat.begin(), skat.end());
             bool declarer_win = declarer_has_won_round();
-            BOOST_LOG_TRIVIAL(debug) << "Declarer has won: " << declarer_win;
+            BOOST_LOG_TRIVIAL(info) << "Declarer has won: " << declarer_win;
             int game_value = get_game_value(won_cards[declarer]);
-            BOOST_LOG_TRIVIAL(debug) << "Calculated game value: " << std::to_string(game_value);
+            BOOST_LOG_TRIVIAL(info) << "Calculated game value: " << std::to_string(game_value);
             if (declarer_win) {
                 points[declarer] += game_value;
             }
             else {
                 points[declarer] -= 2*game_value;
             }
-            BOOST_LOG_TRIVIAL(debug) << "New game points: " << std::to_string(points[0]) << ", " << std::to_string(points[1]) << ", " << std::to_string(points[2]);
+            BOOST_LOG_TRIVIAL(info) << "New game points: " << std::to_string(points[0]) << ", " << std::to_string(points[1]) << ", " << std::to_string(points[2]);
             round++;
             // Reset cards and move player designations if game isn't finished 
             if (round <= max_rounds) {
@@ -337,7 +332,7 @@ void Game::step_by_game() {
             players[not_winner]->put_transition(-1, state_after, not_winner);
             players[also_not_winner]->put_transition(-1, state_after, also_not_winner);
             state = finished;
-            BOOST_LOG_TRIVIAL(debug) << "Game finished -- winner: " << std::to_string(game_winner);
+            BOOST_LOG_TRIVIAL(info) << "Game finished -- winner: " << std::to_string(game_winner);
         }
     }
     return;

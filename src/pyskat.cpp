@@ -17,7 +17,7 @@ namespace logging = boost::log;
 PYBIND11_MODULE(pyskat, m) {
     logging::core::get()->set_filter
     (
-        logging::trivial::severity >= logging::trivial::error
+        logging::trivial::severity >= logging::trivial::info
     );
     // Cards bindings
     py::enum_<Cards::Color>(m, "Color")
