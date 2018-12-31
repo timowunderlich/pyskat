@@ -58,15 +58,16 @@ class PolicyPlayer(pyskat.Player):
 class PlayerTrainer(object):
     # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
     input_size = 32 + 32 + 32 + 32 + 32 + 1
-    default_hparams = {"hidden_size_1": 100, "hidden_size_2": 100, "hidden_size_3": 100}
+    default_hparams = {"hidden_size_1": input_size, "hidden_size_2": input_size, "hidden_size_3": 100, "hidden_size_4": 100}
     def __init__(self, hparams=default_hparams):
         self.hparams = hparams
         # Create policy model
         input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
-        hidden_layer_1 = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
-        hidden_layer_2 = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer_1)
-        hidden_layer_3 = layers.Dense(hparams["hidden_size_3"], activation="relu")(hidden_layer_2)
-        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer_3)
+        hidden_layer = layers.Dense(hparams["hidden_size_1"], activation="relu")(input_layer)
+        hidden_layer = layers.Dense(hparams["hidden_size_2"], activation="relu")(hidden_layer)
+        hidden_layer = layers.Dense(hparams["hidden_size_3"], activation="relu")(hidden_layer)
+        hidden_layer = layers.Dense(hparams["hidden_size_4"], activation="relu")(hidden_layer)
+        softmax_layer = layers.Dense(32, activation="softmax")(hidden_layer)
         self.model = tf.keras.Model(inputs=input_layer, outputs=softmax_layer)
         # Create training model that wraps above model
         reward_input = layers.Input(shape=(1,))
