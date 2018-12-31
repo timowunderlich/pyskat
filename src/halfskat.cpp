@@ -34,7 +34,7 @@ Cards::Card HumanPlayer::query_policy() {
     std::cout << "\nCurrent trick: " << m_last_state.trick;
     std::cout << "\nPlayed by: ";
     for (auto c : m_last_state.trick) {
-        BOOST_LOG_TRIVIAL(debug) << std::to_string(c.played_by) << " ";
+        std::cout << std::to_string(c.played_by) << " ";
     }
     std::cout << "\nYou are declarer: " << m_last_state.is_declarer;
     std::cout << "\nYour current cards: " << m_cards;
