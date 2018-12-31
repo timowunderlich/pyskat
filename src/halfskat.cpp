@@ -231,6 +231,7 @@ void Game::step_by_trick() {
         BOOST_LOG_TRIVIAL(debug) << "Player wants to play " << played_card;
         // Check if legal move
         legal_cards = get_legal_cards(players[current_player]->m_cards);
+        BOOST_LOG_TRIVIAL(debug) << "Legal cards: " << legal_cards;
         in_legals = (std::find(legal_cards.begin(), legal_cards.end(), played_card) != legal_cards.end());
         BOOST_LOG_TRIVIAL(debug) << "This move is legal: " << in_legals;
         if (not retry_on_illegal) break;
