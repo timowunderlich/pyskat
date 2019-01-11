@@ -62,6 +62,9 @@ class PlayerTrainer(object):
     def __init__(self, hparams=default_hparams, save_to=None, start_model=None):
         self.hparams = hparams
         self.save_to = save_to
+        self.states = list()
+        self.rewards = list()
+        self.actions = list()
         if start_model is None:
             # Create policy model
             input_layer = layers.Input(shape=(PolicyPlayer.input_size, ))
@@ -101,22 +104,31 @@ class PlayerTrainer(object):
             loss = -tf.keras.backend.sum(prod)
             return loss
         return lossfct
-    
-    def train_on_transitions(self):
-        states, actions, rewards = list(), list(), list()
+
+    def discount_rewards(self, rewards):
+        new_rewards = list()
+        for r in rewards:
+            new_rewards.append(rewards[-1])
+        return new_rewards
+        
+
+    def save_transitions(self):
         for player in self.players:
             new_states, new_actions, new_rewards = player.get_transitions_for_model()
-            states.extend(new_states)
-            actions.extend(new_actions)
-            rewards.extend(new_rewards)
-        states, actions, rewards = np.array(states), np.array(actions), np.array(rewards)
-        self.training_model.train_on_batch([states, rewards], actions)
-        print("Got average reward: {}".format(np.mean(rewards)))
+            self.states.extend(new_states)
+            self.actions.extend(new_actions)
+            self.rewards.extend(self.discount_rewards(new_rewards))
+
+    def train_on_transitions(self):
+        np_states, np_actions, np_rewards = np.array(self.states), np.array(self.actions), np.array(self.rewards)
+        self.training_model.train_on_batch([np_states, np_rewards], np_actions)
+        print("Got average reward: {}".format(np.mean(self.rewards)))
 
     def train(self, eps=10000, games_per_ep=1000):
         for ep in range(eps):
             for _ in range(games_per_ep):
                 self.game.run_new_game()
+                self.save_transitions()
             print("In episode {}".format(ep))
             self.train_on_transitions()
             if self.save_to is not None:
