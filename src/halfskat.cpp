@@ -35,16 +35,18 @@ Cards::Card HumanPlayer::query_policy() {
     BOOST_LOG_TRIVIAL(info) << "\nYour current cards: " << m_cards;
     BOOST_LOG_TRIVIAL(info) << "\nEnter card to play: ";
     std::string input;
+    size_t num;
     bool valid_input = false;
     while (not valid_input) {
         std::getline(std::cin, input);
-        size_t num = std::stoi(input);
-        if ((num > m_cards.size()) or (num < 1)) {
-            BOOST_LOG_TRIVIAL(info) << "\nEnter valid number. Try again: ";
+        try {
+            num = std::stoi(input);
         }
-        else {
+        catch (std::invalid_argument const&) {}
+        if ((num <= m_cards.size()) and (num >= 1)) {
             return m_cards.at(num-1);
         }
+        BOOST_LOG_TRIVIAL(info) << "\nEnter valid number. Try again: ";
     }
     throw std::runtime_error("\nCould not get action.");
 }
