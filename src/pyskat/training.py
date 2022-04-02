@@ -1,59 +1,10 @@
 import pyskat
 import numpy as np
 import tensorflow as tf
-from tensorflow._api.v1.keras import layers, models
-import argparse
+from tensorflow.keras import layers, models
 
-class PolicyPlayer(pyskat.Player):
-    # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
-    input_size = 32 + 32 + 32 + 32 + 32 + 1
-    def __init__(self, policy_model, training_model):
-        super(PolicyPlayer, self).__init__()
-        self.model = policy_model
-        self.training_model = training_model
+from .player import PolicyPlayer
 
-    # Converts PlayerState into representation to be used as model input
-    def convert_state_for_model(self, state):
-        assert(isinstance(state, pyskat.PlayerState))
-        trick_card_1 = np.array(state.trick[0].to_one_hot())*1. if len(state.trick) > 0 else np.zeros(32)
-        trick_card_2 = np.array(state.trick[1].to_one_hot())*1. if len(state.trick) > 1 else np.zeros(32)
-        # Sequentially create list with multi-hot card representation
-        input_repr = list()
-        input_repr.extend(pyskat.get_multi_hot(state.hole_cards)*np.ones(32))
-        input_repr.extend(trick_card_1)
-        input_repr.extend(trick_card_2)
-        input_repr.extend(pyskat.get_multi_hot(state.won_friendly)*np.ones(32))
-        input_repr.extend(pyskat.get_multi_hot(state.won_hostile)*np.ones(32))
-        input_repr.append(state.is_declarer * 1.)
-        assert(PolicyPlayer.input_size == len(input_repr))
-        return np.array(input_repr)
-
-    # Converts transitions saved in player into representation for model
-    def convert_transitions_for_model(self):
-        transitions = self.get_transitions()
-        before_states = list()
-        actions = list()
-        rewards = list()
-        for t in transitions:
-            before_states.append(self.convert_state_for_model(t.before))
-            actions.append(t.action.to_one_hot()*np.ones(32))
-            rewards.append(t.reward)
-        return before_states, actions, rewards
-
-    def get_transitions_for_model(self):
-        states, actions, rewards = self.convert_transitions_for_model()
-        self.clear_transitions()
-        return states, actions, rewards
-
-    # Is called by Game to get player's action, overrides pure virtual
-    def query_policy(self):
-        # Get probabilities from neural network
-        state = self.convert_state_for_model(self.get_last_state())
-        probs = self.model.predict(np.expand_dims(state, axis=0))[0]
-        # Get one-hot representation of random card
-        card_id = np.random.choice(32, p=probs)
-        card = pyskat.Card(card_id)
-        return card
 
 class PlayerTrainer(object):
     # total input size = hole cards + trick card 1 + trick card 2 + friendly won + hostile won + is declarer
@@ -90,7 +41,8 @@ class PlayerTrainer(object):
         self.two = PolicyPlayer(self.model, self.training_model)
         self.three = PolicyPlayer(self.model, self.training_model)
         self.players = [self.one, self.two, self.three]
-        self.game = pyskat.Game(self.one, self.two, self.three, retry_on_illegal_action=False)
+        self.game = pyskat.Game(self.one, self.two, self.three, retry_on_illegal_action=True)
+        self.game.set_log_level_to_warning()
 
     # Creates loss function that takes reward into account
     def create_loss_function(self, reward_input):
@@ -133,10 +85,3 @@ class PlayerTrainer(object):
             self.train_on_transitions()
             if self.save_to is not None:
                 self.model.save(self.save_to)
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--start-model", type=str, help="Starting model filename (HDF5).")
-    args = parser.parse_args()
-    trainer = PlayerTrainer(start_model=args.start_model, save_to="skat_model.h5")
-    trainer.train()

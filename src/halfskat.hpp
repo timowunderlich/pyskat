@@ -149,6 +149,8 @@ class Game {
         void step_by_round();
         void run_new_game();
         void step_by_game();
+        void set_log_level_to_warning();
+        void set_log_level_to_info();
 
         std::vector<Cards::Card> get_trick() const { return trick; }
         std::array<int, 3> get_points() const { return points; }

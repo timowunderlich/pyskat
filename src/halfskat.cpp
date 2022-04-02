@@ -1,10 +1,13 @@
 #include <iostream>
 #include <stdexcept>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
 
 #include "halfskat.hpp"
 #include "cards.hpp"
 
 
+namespace logging = boost::log;
 using namespace HalfSkat;
 
 Cards::Card Player::get_action(ObservableState const& state, int player_id) {
@@ -386,4 +389,18 @@ void Game::remove_card_from_current_player(Cards::Card const& card) {
             break;
         }
     }
+}
+
+void Game::set_log_level_to_warning() {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::warning
+    );
+}
+
+void Game::set_log_level_to_info() {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::info
+    );
 }

@@ -10,11 +10,12 @@
 
 #include "halfskat.hpp"
 #include "cards.hpp"
+#include "tests.hpp"
 
 namespace py = pybind11;
 namespace logging = boost::log;
 
-PYBIND11_MODULE(pyskat, m) {
+PYBIND11_MODULE(pyskat_cpp, m) {
     logging::core::get()->set_filter
     (
         logging::trivial::severity >= logging::trivial::info
@@ -90,6 +91,8 @@ PYBIND11_MODULE(pyskat, m) {
         .def("get_points", &HalfSkat::Game::get_points)
         .def("get_round", &HalfSkat::Game::get_round)
         .def("get_max_rounds", &HalfSkat::Game::get_max_rounds)
+        .def("set_log_level_to_warning", &HalfSkat::Game::set_log_level_to_warning)
+        .def("set_log_level_to_info", &HalfSkat::Game::set_log_level_to_info)
         .def_readonly("trump", &HalfSkat::Game::trump);
     py::class_<HalfSkat::Transition>(m, "Transition")
         .def_readonly("before", &HalfSkat::Transition::before)
@@ -103,4 +106,5 @@ PYBIND11_MODULE(pyskat, m) {
         .def_readonly("won_friendly", &HalfSkat::PlayerState::won_friendly)
         .def_readonly("won_hostile", &HalfSkat::PlayerState::won_hostile)
         .def_readonly("is_declarer", &HalfSkat::PlayerState::is_declarer);
+    m.def("run_all_tests", &Tests::run_all_tests);
 }

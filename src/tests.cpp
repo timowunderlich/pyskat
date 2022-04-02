@@ -5,6 +5,7 @@
 #include <boost/log/expressions.hpp>
 #include "cards.hpp"
 #include "halfskat.hpp"
+#include "tests.hpp"
 
 namespace logging = boost::log;
 using namespace Cards;
@@ -176,11 +177,11 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     EXPECT_GE(games_won[2], -2*expected_sigma);
 }
 
-GTEST_API_ int main(int argc, char **argv) {
+int Tests::run_all_tests() {
     logging::core::get()->set_filter
     (
         logging::trivial::severity >= logging::trivial::warning
     );
-    testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest();
     return RUN_ALL_TESTS();
 }

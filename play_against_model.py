@@ -1,8 +1,6 @@
 import pyskat
-import numpy as np
-import tensorflow as tf
-from tensorflow._api.v1.keras import models
-from pg import PolicyPlayer
+from tensorflow.keras import models
+from pyskat.player import PolicyPlayer
 import argparse
 
 if __name__ == "__main__":

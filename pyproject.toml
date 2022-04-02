@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools", "pybind11>=2.6.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyskat"
+version = "0.0.1"
+description = "PySkat implements a subset of the Skat card game (only a suit game where ♣ is the trump) and uses Tensorflow to train a neural network to play the game using policy gradient."
+readme = "README.md"
+dependencies = [
+    "numpy",
+    "tensorflow>=2.4.0",
+    "pybind11>=2.6.0",
+    'importlib-metadata; python_version>"3.8"',
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
