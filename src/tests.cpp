@@ -158,7 +158,6 @@ TEST(HalfSkatTest, RandomGameWholeGame) {
 }
 
 TEST(HalfSkatTest, RandomNoPlayerBias) {
-    int winner;
     constexpr int n = 1e3;
     std::array<int, 3> games_won = {{-n/3, -n/3, -n/3}};
     int const expected_var = std::round(n * (2/9.));
@@ -166,7 +165,7 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
     Game game(1000, true);
     for (int i=0; i<n; i++) {
         game.run_new_game();
-        winner = game.get_game_winner();
+        int winner = game.get_game_winner();
         games_won[winner]++;
     }
     EXPECT_LE(games_won[0], 2*expected_sigma);
