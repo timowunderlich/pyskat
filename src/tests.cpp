@@ -159,7 +159,7 @@ TEST(HalfSkatTest, RandomGameWholeGame) {
 
 TEST(HalfSkatTest, RandomNoPlayerBias) {
     int winner;
-    constexpr int n = 1e2;
+    constexpr int n = 1e3;
     std::array<int, 3> games_won = {{-n/3, -n/3, -n/3}};
     int const expected_var = std::round(n * (2/9.));
     int const expected_sigma = std::sqrt(expected_var);
@@ -180,7 +180,7 @@ TEST(HalfSkatTest, RandomNoPlayerBias) {
 GTEST_API_ int main(int argc, char **argv) {
     logging::core::get()->set_filter
     (
-        logging::trivial::severity >= logging::trivial::info
+        logging::trivial::severity >= logging::trivial::warning
     );
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
